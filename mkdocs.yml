@@ -1,0 +1,19 @@
+site_name: Movie Rating
+site_description: A movie rating API built with FastAPI
+site_author: Jvictor
+
+theme:
+  name: material
+  palette:
+
+nav:
+  - Start: index.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
