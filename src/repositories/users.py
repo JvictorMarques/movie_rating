@@ -26,7 +26,7 @@ async def list_all_users(db: AsyncSession) -> list[User]:
     return list(result.all())
 
 
-async def user_exist(db: AsyncSession, user_id: int) -> User:
+async def user_exist(db: AsyncSession, user_id: int) -> User | None:
     return await db.get(User, user_id)
 
 
