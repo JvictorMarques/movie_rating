@@ -85,10 +85,10 @@ concurrency = ["thread", "greenlet"]
 [tool.taskipy.tasks]
 lint = 'ruff check'
 lint_fix = 'ruff check --fix'
-pre_format = 'task lint_fix'
 format = 'ruff format'
+post_format = 'task lint_fix'
 mypy = 'mypy src/'
 test = 'pytest -s -x --cov=src/ -vv'
 post_test = 'coverage html'
-pre_app = 'task format && task mypy && docker compose up -d'
+pre_app = 'task lint_fix && task format && task mypy && docker compose up -d'
 app = 'fastapi dev app.py'
