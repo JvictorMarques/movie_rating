@@ -1,6 +1,6 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
@@ -21,8 +21,26 @@ Session = Annotated[AsyncSession, Depends(get_session)]
     response_model=UserListPublicSchema,
     summary='List all users',
 )
-async def list_users(db: Session):
-    return await users_service.list_users(db)
+async def list_users(
+    db: Session,
+    limit: Annotated[
+        int,
+        Query(ge=1, le=100, description='Number maximum of records'),
+    ] = 100,
+    offset: Annotated[int, Query(ge=0, description='Page number')] = 0,
+    filter: Annotated[Optional[str], Query(description='Filter field')] = None,
+):
+    return await users_service.list_users(db, limit, offset, filter)
+
+
+@router.get(
+    path='/{user_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=UserPublicSchema,
+    summary='Get an users',
+)
+async def get_user(db: Session, user_id: int):
+    return await users_service.get_user(db, user_id)
 
 
 @router.post(
@@ -42,3 +60,13 @@ async def create_user(db: Session, user: UserSchema):
 )
 async def delete_user(db: Session, user_id: int):
     await users_service.delete_user(db, user_id)
+
+
+@router.put(
+    path='/{user_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=UserPublicSchema,
+    summary='Update an user',
+)
+async def update_user(db: Session, user_id: int):
+    return await users_service.delete_user(db, user_id)
