@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -18,15 +20,21 @@ async def create_user(db: AsyncSession, user_data: UserSchema) -> User:
     db.add(user)
     await db.commit()
     await db.refresh(user)
+
     return user
 
 
-async def list_all_users(db: AsyncSession) -> list[User]:
-    result = await db.scalars(select(User))
+async def list_all_users(
+    db: AsyncSession, limit: int, offset: int, filter: Optional[str]
+) -> list[User]:
+    query = select(User).offset(offset).limit(limit)
+    if filter:
+        query = query.where(User.name.ilike(filter))
+    result = await db.scalars(query)
     return list(result.all())
 
 
-async def user_exist(db: AsyncSession, user_id: int) -> User | None:
+async def get_user(db: AsyncSession, user_id: int) -> User | None:
     return await db.get(User, user_id)
 
 
