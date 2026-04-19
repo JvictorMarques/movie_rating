@@ -23,12 +23,11 @@ repos:
         additional_dependencies: [pydantic]
         args: [--ignore-missing-imports]
 
-# TODO: setup pytest before enabling
-# -   repo: local
-#     hooks:
-#     -   id: pytest
-#         name: pytest
-#         entry: uv run pytest -s -x -vv
-#         language: system
-#         types: [python]
-#         pass_filenames: false
+-   repo: local
+    hooks:
+    -   id: pytest
+        name: pytest
+        entry: uv run pytest -s -x -vv
+        language: system
+        types: [python]
+        pass_filenames: false
