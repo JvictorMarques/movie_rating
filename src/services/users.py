@@ -44,12 +44,8 @@ async def delete_user(db: AsyncSession, user_id: int) -> None:
 
 
 async def list_users(
-    db: AsyncSession, limit: int, offset: int, filter: Optional[str]
+    db: AsyncSession, limit: int, offset: int, search_filter: Optional[str]
 ) -> UserListPublicSchema:
-    if filter:
-        search_filter = f'%{filter}%'
-    else:
-        search_filter = None
     users = await users_repo.list_all_users(db, limit, offset, search_filter)
     return UserListPublicSchema(users=users, limit=limit, offset=offset)
 
@@ -63,5 +59,5 @@ async def get_user(db: AsyncSession, user_id: int) -> User:
     return user
 
 
-# async def update_user(db: AsyncSession, user_id: int) -> User:
+# async def update_user(db: AsyncSession, user_id: int) -> User: #TODO
 #     pass

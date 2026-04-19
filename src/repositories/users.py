@@ -25,11 +25,11 @@ async def create_user(db: AsyncSession, user_data: UserSchema) -> User:
 
 
 async def list_all_users(
-    db: AsyncSession, limit: int, offset: int, filter: Optional[str]
+    db: AsyncSession, limit: int, offset: int, search_filter: Optional[str]
 ) -> list[User]:
     query = select(User).offset(offset).limit(limit)
-    if filter:
-        query = query.where(User.name.ilike(filter))
+    if search_filter:
+        query = query.where(User.name.ilike(f'%{search_filter}%'))
     result = await db.scalars(query)
     return list(result.all())
 

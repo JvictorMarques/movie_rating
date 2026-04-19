@@ -28,9 +28,11 @@ async def list_users(
         Query(ge=1, le=100, description='Number maximum of records'),
     ] = 100,
     offset: Annotated[int, Query(ge=0, description='Page number')] = 0,
-    filter: Annotated[Optional[str], Query(description='Filter field')] = None,
+    search_filter: Annotated[
+        Optional[str], Query(description='Search filter by name')
+    ] = None,
 ):
-    return await users_service.list_users(db, limit, offset, filter)
+    return await users_service.list_users(db, limit, offset, search_filter)
 
 
 @router.get(
@@ -62,7 +64,7 @@ async def delete_user(db: Session, user_id: int):
     await users_service.delete_user(db, user_id)
 
 
-@router.put(
+@router.put(  # TODO
     path='/{user_id}',
     status_code=status.HTTP_200_OK,
     response_model=UserPublicSchema,
