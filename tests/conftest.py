@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from app import app
 from src.core.database import get_session
-from src.models import Base
+from src.models import Base, User
 
 
 @pytest_asyncio.fixture
@@ -34,3 +34,33 @@ def client(session):
         yield client
 
     app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture
+async def user(session):
+    user = User(
+        name='test_user',
+        email='test_user@email.com',
+        age=18,
+        password='Teste123@',  # NOSONAR
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return user
+
+
+@pytest_asyncio.fixture
+async def other_user(session):
+    user = User(
+        name='test_other_user',
+        email='test_other_user@email.com',
+        age=18,
+        password='Teste123@',  # NOSONAR
+    )
+    session.add(user)
+    await session.commit()
+    await session.refresh(user)
+
+    return user
