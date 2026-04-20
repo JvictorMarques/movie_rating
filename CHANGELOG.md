@@ -1,3 +1,10 @@
+## v0.3.0 (2026-04-20)
+
+### Feat
+
+- **schemas**: add Name type alias and movies schema file
+- **models**: enforce nullable=False and unique constraints on name fields
+
 ## v0.2.0 (2026-04-20)
 
 ### Feat
