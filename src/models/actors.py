@@ -17,8 +17,8 @@ class Actor(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    name: Mapped[str] = mapped_column(String(100))
-    age: Mapped[int]
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    age: Mapped[int] = mapped_column(nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
