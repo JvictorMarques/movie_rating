@@ -42,3 +42,14 @@ async def delete_user(db: AsyncSession, user_id: int) -> None:
     user = await db.get(User, user_id)
     await db.delete(user)
     await db.commit()
+
+
+async def update_user(db: AsyncSession, user: User, update_data: dict) -> User:
+    for key, value in update_data.items():
+        if key == 'password':
+            setattr(user, key, value.get_secret_value())
+        else:
+            setattr(user, key, value)
+    await db.commit()
+    await db.refresh(user)
+    return user

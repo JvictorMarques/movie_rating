@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Annotated, Optional
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
@@ -20,9 +21,11 @@ class UserPublicSchema(BaseModel):
     email: EmailStr
     age: Age
 
+    created_at: datetime
+    updated_at: datetime
+
 
 class UserUpdateSchema(BaseModel):
-    id: int
     name: Optional[str] = None
     email: Optional[EmailStr] = None
     age: Optional[Age] = None
