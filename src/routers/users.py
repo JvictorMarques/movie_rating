@@ -8,6 +8,7 @@ from src.schemas.users import (
     UserListPublicSchema,
     UserPublicSchema,
     UserSchema,
+    UserUpdateSchema,
 )
 from src.services import users as users_service
 
@@ -64,11 +65,13 @@ async def delete_user(db: Session, user_id: int):
     await users_service.delete_user(db, user_id)
 
 
-@router.put(  # TODO
+@router.put(
     path='/{user_id}',
     status_code=status.HTTP_200_OK,
     response_model=UserPublicSchema,
     summary='Update an user',
 )
-async def update_user(db: Session, user_id: int):
-    return await users_service.delete_user(db, user_id)
+async def update_user(
+    db: Session, user_id: int, update_data: UserUpdateSchema
+):
+    return await users_service.update_user(db, user_id, update_data)
