@@ -4,20 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Commands
 
-All tasks are run via `taskipy`:
+All tasks are run via `taskipy` using `uv run`:
 
 ```bash
-task lint          # ruff check
-task lint_fix      # ruff check --fix
-task format        # ruff format (runs lint_fix after)
-task mypy          # mypy src/
-task test          # pytest -s -x --cov=src/ -vv (generates coverage HTML)
-task app           # fastapi dev app.py (runs lint_fix, format, mypy, docker compose up -d first)
+uv run task lint          # ruff check
+uv run task lint_fix      # ruff check --fix
+uv run task format        # ruff format (runs lint_fix after)
+uv run task mypy          # mypy src/
+uv run task test          # pytest -s -x --cov=src/ -vv (generates coverage HTML)
+uv run task app           # fastapi dev app.py (runs lint_fix, format, mypy, docker compose up -d first)
 ```
 
 Run a single test file:
 ```bash
-pytest tests/path/to/test_file.py -s -x -vv
+uv run pytest tests/path/to/test_file.py -s -x -vv
 ```
 
 ## Architecture
