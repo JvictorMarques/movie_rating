@@ -4,10 +4,11 @@ from typing import Annotated, Optional
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
 
 Age = Annotated[int, Field(gt=1, lt=150)]
+Name = Annotated[str, Field(min_length=2)]
 
 
 class UserSchema(BaseModel):
-    name: str
+    name: Name
     email: EmailStr
     age: Age
     password: SecretStr
@@ -17,7 +18,7 @@ class UserPublicSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    name: str
+    name: Name
     email: EmailStr
     age: Age
 
@@ -26,7 +27,7 @@ class UserPublicSchema(BaseModel):
 
 
 class UserUpdateSchema(BaseModel):
-    name: Optional[str] = None
+    name: Optional[Name] = None
     email: Optional[EmailStr] = None
     age: Optional[Age] = None
     password: Optional[SecretStr] = None
