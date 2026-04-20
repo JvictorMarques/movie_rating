@@ -1,10 +1,9 @@
 from datetime import datetime
-from typing import Annotated, Optional
+from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, EmailStr, SecretStr
 
-Age = Annotated[int, Field(gt=1, lt=150)]
-Name = Annotated[str, Field(min_length=2)]
+from src.schemas.common import Age, Name
 
 
 class UserSchema(BaseModel):
