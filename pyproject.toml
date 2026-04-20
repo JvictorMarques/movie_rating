@@ -25,6 +25,7 @@ dev = [
     "pytest-asyncio (>=1.3.0,<2.0.0)",
     "pytest-cov (>=7.1.0,<8.0.0)",
     "aiosqlite>=0.22.1",
+    "commitizen>=4.13.10",
 ]
 
 [tool.ruff]
@@ -82,13 +83,19 @@ asyncio_default_fixture_loop_scope = 'function'
 [tool.coverage.run]
 concurrency = ["thread", "greenlet"]
 
+[tool.commitizen]
+version_provider = "uv"
+tag_format = "v$version"
+update_changelog_on_bump = true
+
 [tool.taskipy.tasks]
 lint = 'ruff check'
 lint_fix = 'ruff check --fix'
 format = 'ruff format'
 post_format = 'task lint_fix'
 mypy = 'mypy src/'
+test_check = 'pytest -s -x -vv'
 test = 'pytest -s -x --cov=src/ -vv'
 post_test = 'coverage html'
-pre_app = 'task lint_fix && task format && task mypy && docker compose up -d'
+pre_app = 'task lint_fix && task format && task mypy && task test_check && docker compose up -d'
 app = 'fastapi dev app.py'
