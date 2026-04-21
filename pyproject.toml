@@ -1,6 +1,6 @@
 [project]
 name = "movie-rating"
-version = "0.3.0"
+version = "0.4.0"
 description = "A REST API for rating movies, built with FastAPI and async SQLAlchemy"
 readme = "README.md"
 requires-python = ">=3.13, <4.0"

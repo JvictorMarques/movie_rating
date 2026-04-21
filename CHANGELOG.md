@@ -1,3 +1,19 @@
+## v0.4.0 (2026-04-21)
+
+### Feat
+
+- **app**: register movies and actors routers
+- **movies**: add movies repository, service, and router
+- **actors**: add actors repository, service, and router
+- **models**: add release_date to Movie and ondelete CASCADE to intermediate tables
+- **schemas**: add actors schema file
+- **schemas**: add common type aliases module
+
+### Refactor
+
+- **schemas**: rename and expand actors and movies schemas
+- **schemas**: use common type aliases in movies and users schemas
+
 ## v0.3.0 (2026-04-20)
 
 ### Feat
