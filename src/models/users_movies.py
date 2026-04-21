@@ -17,10 +17,10 @@ class UserMovie(Base):
     __tablename__ = 'users_movies'
 
     user_id: Mapped[int] = mapped_column(
-        ForeignKey('users.id'), primary_key=True
+        ForeignKey('users.id', ondelete='CASCADE'), primary_key=True
     )
     movie_id: Mapped[int] = mapped_column(
-        ForeignKey('movies.id'), primary_key=True
+        ForeignKey('movies.id', ondelete='CASCADE'), primary_key=True
     )
     rating: Mapped[Optional[float]] = mapped_column(default=None)
 
