@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
@@ -5,18 +6,38 @@ from pydantic import BaseModel, ConfigDict
 from src.schemas.common import Age, Name, Rating
 
 
-class ActorSchema(BaseModel):
+class ActorCreateSchema(BaseModel):
     name: Name
     age: Age
 
 
-class ActorPublicSchema(BaseModel):
+class ActorCreateResponseSchema(BaseModel):
+    id: int
+    name: Name
+    age: Age
+
+    created_at: datetime
+    updated_at: datetime
+
+
+class ActorInformationSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: Name
+    age: Age
+
+
+class ActorDetailSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
     name: Name
     age: Age
     rating: Rating
+
+    created_at: datetime
+    updated_at: datetime
 
 
 class ActorUpdateSchema(BaseModel):
@@ -25,6 +46,6 @@ class ActorUpdateSchema(BaseModel):
 
 
 class ActorListSchema(BaseModel):
-    actors: list[ActorPublicSchema]
+    actors: list[ActorDetailSchema]
     limit: int
     offset: int
