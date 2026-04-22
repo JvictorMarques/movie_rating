@@ -6,6 +6,7 @@ from src.repositories import actors as actors_repository
 from src.schemas.actors import ActorCreateSchema
 
 ACTOR_EXISTS = 'Actor/Actress already exists'
+ACTOR_NOT_FOUND = 'Actor not found'
 
 
 async def create_actor(db: AsyncSession, actor: ActorCreateSchema) -> Actor:

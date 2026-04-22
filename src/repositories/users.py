@@ -53,3 +53,7 @@ async def update_user(db: AsyncSession, user: User, update_data: dict) -> User:
     await db.commit()
     await db.refresh(user)
     return user
+
+
+async def check_user_exists(db: AsyncSession, user_id: int) -> bool | None:
+    return await db.scalar(select(exists().where(User.id == user_id)))

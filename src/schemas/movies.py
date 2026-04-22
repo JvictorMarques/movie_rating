@@ -30,6 +30,31 @@ class MovieCreateResponseSchema(BaseModel):
     updated_at: datetime
 
 
+class MovieRatingSchema(BaseModel):
+    rating: Rating
+
+
+class MovieCreateRatingResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id: int
+    movie_id: int
+    rating: Rating
+
+    created_at: datetime
+    updated_at: datetime
+
+
+class MovieRatingUpdateResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    user_id: int
+    movie_id: int
+    rating: Rating
+
+    updated_at: datetime
+
+
 class MovieDetailSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
