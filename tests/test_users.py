@@ -1,6 +1,6 @@
+from src.services.users import EMAIL_EXISTS, USER_NOT_FOUND
+
 URL_PREFIX = '/api/v1/users'
-USER_NOT_FOUND = 'User not found'
-EMAIL_EXISTS = 'Email already exists'
 
 
 def test_create_user(client):
@@ -25,8 +25,8 @@ def test_create_user(client):
 
 def test_create_user_duplicate_email(client, user):
     payload = {
-        'name': 'test_user',
-        'email': 'test_user@email.com',
+        'name': 'test_create_user',
+        'email': user.email,
         'age': 18,
         'password': 'Teste123@',  # NOSONAR
     }
@@ -34,7 +34,7 @@ def test_create_user_duplicate_email(client, user):
     assert response.status_code == 409
 
     data = response.json()
-    assert data['detail'] == 'Email already exists'
+    assert data['detail'] == EMAIL_EXISTS
 
 
 def test_delete_user(client, user):
