@@ -89,10 +89,10 @@ def test_create_movie_with_nonexistent_actor(client, actor, other_actor):
     assert data['detail'] == f'{ACTOR_NOT_FOUND}: {{3}}'
 
 
-def test_create_movie_rating(client, movie, user):
+def test_create_movie_rating(client, movie_without_rating, user):
     payload = {'rating': 1}
     response = client.post(
-        f'{URL_PREFIX}/{movie.id}/ratings?current_user_id={user.id}',
+        f'{URL_PREFIX}/{movie_without_rating.id}/ratings?current_user_id={user.id}',
         json=payload,
     )
 
@@ -101,16 +101,19 @@ def test_create_movie_rating(client, movie, user):
     data = response.json()
 
     assert data['user_id'] == user.id
-    assert data['movie_id'] == movie.id
+    assert data['movie_id'] == movie_without_rating.id
     assert data['rating'] == payload['rating']
     assert 'created_at' in data
     assert 'updated_at' in data
 
 
-def test_create_movie_rating_with_nonexistent_user(client, movie):
+def test_create_movie_rating_with_nonexistent_user(
+    client, movie_without_rating
+):
     payload = {'rating': 1}
     response = client.post(
-        f'{URL_PREFIX}/{movie.id}/ratings?current_user_id=1', json=payload
+        f'{URL_PREFIX}/{movie_without_rating.id}/ratings?current_user_id=1',
+        json=payload,
     )
 
     assert response.status_code == 404
@@ -185,6 +188,58 @@ def test_update_movie_rating_witout_movie(client, movie_rated):
         f'{URL_PREFIX}/2/ratings?current_user_id={movie_rated.user_id}',
         json=payload,
     )
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data['detail'] == MOVIE_NOT_FOUND
+
+
+def test_get_movie(client, movie):
+    response = client.get(f'{URL_PREFIX}/{movie.id}')
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data['id'] == movie.id
+    assert data['name'] == movie.name
+    assert data['synopsis'] == movie.synopsis
+    assert data['director'] == movie.director
+    assert data['release_date'] == str(movie.release_date)
+    assert data['rating'] == movie.user_movies[0].rating
+
+    assert len(data['cast']) == len(movie.actors)
+
+    cast_by_id = {a['id']: a for a in data['cast']}
+    for actor in movie.actors:
+        assert actor.id in cast_by_id
+        assert cast_by_id[actor.id]['name'] == actor.name
+        assert cast_by_id[actor.id]['age'] == actor.age
+
+    assert 'created_at' in data
+    assert 'updated_at' in data
+
+
+def test_get_nonexistent_movie(client):
+    response = client.get(f'{URL_PREFIX}/1')
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data['detail'] == MOVIE_NOT_FOUND
+
+
+def test_delete_movie(client, movie):
+    response = client.delete(f'{URL_PREFIX}/{movie.id}')
+
+    assert response.status_code == 204
+
+
+def test_delete_nonexistent_movie(client):
+    response = client.delete(f'{URL_PREFIX}/1')
 
     assert response.status_code == 404
 
