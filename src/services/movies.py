@@ -8,6 +8,7 @@ from src.repositories import users as users_repository
 from src.schemas.movies import (
     MovieCreateResponseSchema,
     MovieCreateSchema,
+    MovieDetailSchema,
 )
 from src.services.actors import ACTOR_NOT_FOUND
 from src.services.users import USER_NOT_FOUND
@@ -97,10 +98,24 @@ async def update_user_movie_rating(
     )
 
 
-# async def get_movie_detail(db: AsyncSession, movie_id: int) -> None:
-#     movie_exists = await movies_repository.check_movie_exists(db, movie_id)
-#     if not movie_exists:
-#         raise HTTPException(
-#             status_code=status.HTTP_404_NOT_FOUND, detail=MOVIE_NOT_FOUND
-#         )
-#     movie_data = await movies_repository.get_movie_information(db, movie_id)
+async def get_movie(db: AsyncSession, movie_id: int) -> MovieDetailSchema:
+    movie_exists = await movies_repository.check_movie_exists(db, movie_id)
+    if not movie_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=MOVIE_NOT_FOUND
+        )
+    movie, avg_rating = await movies_repository.get_movie_information(
+        db, movie_id
+    )
+    return MovieDetailSchema(
+        **movie.__dict__, cast=movie.actors, rating=avg_rating
+    )
+
+
+async def delete_movie(db: AsyncSession, movie_id: int) -> None:
+    movie_exists = await movies_repository.check_movie_exists(db, movie_id)
+    if not movie_exists:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=MOVIE_NOT_FOUND
+        )
+    await movies_repository.delete_movie(db, movie_id)

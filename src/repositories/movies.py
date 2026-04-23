@@ -1,5 +1,7 @@
-from sqlalchemy import exists, select
+from alembic.environment import Any
+from sqlalchemy import Row, exists, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.models import Movie, MovieActor, UserMovie
 
@@ -58,11 +60,12 @@ async def create_user_rating(
 async def update_user_rating(
     db: AsyncSession, movie_id: int, user_id: int, rating: float
 ) -> UserMovie:
-    user_rating: UserMovie = await db.scalar(
+    user_rating = await db.scalar(
         select(UserMovie).where(
             UserMovie.user_id == user_id, UserMovie.movie_id == movie_id
         )
     )
+    assert user_rating is not None
     user_rating.rating = rating
     await db.commit()
     await db.refresh(user_rating)
@@ -70,9 +73,23 @@ async def update_user_rating(
     return user_rating
 
 
-# async def get_movie_information(db: AsyncSession, movie_id: int) -> Movie:
-#     return await db.scalar((
-#         select(Movie)
-#         .where(Movie.id == movie_id)
+async def get_movie_information(db: AsyncSession, movie_id: int) -> Row[Any]:
+    avg_subquery = (
+        select(func.avg(UserMovie.rating))
+        .where(UserMovie.movie_id == movie_id)
+        .scalar_subquery()
+    )
+    result = await db.execute(
+        select(Movie, avg_subquery.label('avg_rating'))
+        .where(Movie.id == movie_id)
+        .options(selectinload(Movie.actors))
+    )
+    row = result.first()
+    assert row is not None
+    return row
 
-#     ))
+
+async def delete_movie(db: AsyncSession, movie_id: int) -> None:
+    movie = await db.get(Movie, movie_id)
+    await db.delete(movie)
+    await db.commit()
