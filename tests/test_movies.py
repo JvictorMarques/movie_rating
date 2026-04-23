@@ -246,3 +246,81 @@ def test_delete_nonexistent_movie(client):
     data = response.json()
 
     assert data['detail'] == MOVIE_NOT_FOUND
+
+
+def test_list_movies(
+    client, movie, movie_without_rating, movie_without_cast, movie_rated
+):
+    response = client.get(f'{URL_PREFIX}?limit=4&offset=0')
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data['limit'] == 4
+    assert data['offset'] == 0
+
+    movies = data['movies']
+    assert len(movies) == 3
+
+    movies_by_id = {m['id']: m for m in movies}
+
+    m = movies_by_id[movie.id]
+    assert m['name'] == movie.name
+    assert m['rating'] == movie.user_movies[0].rating
+    assert len(m['cast']) == len(movie.actors)
+
+    m = movies_by_id[movie_without_rating.id]
+    assert m['name'] == movie_without_rating.name
+    assert m['rating'] == movie_rated.rating
+    assert len(m['cast']) == len(movie_without_rating.actors)
+
+    m = movies_by_id[movie_without_cast.id]
+    assert m['name'] == movie_without_cast.name
+    assert m['cast'] == []
+
+
+def test_list_movies_with_name_filter(
+    client, movie, movie_without_rating, movie_without_cast, movie_rated
+):
+    response = client.get(f'{URL_PREFIX}?name_filter=without_cast')
+
+    assert response.status_code == 200
+
+    data = response.json()
+    movies = data['movies']
+    assert len(movies) == 1
+    assert movies[0]['id'] == movie_without_cast.id
+    assert movies[0]['name'] == movie_without_cast.name
+
+
+def test_list_movies_with_rating_filter(
+    client, movie, movie_without_rating, movie_without_cast
+):
+    # movie_without_rating has no rating here (movie_rated fixture not used)
+    response = client.get(f'{URL_PREFIX}?rating_filter=10')
+
+    assert response.status_code == 200
+
+    data = response.json()
+    movies = data['movies']
+    assert len(movies) == 2
+
+    returned_ids = {m['id'] for m in movies}
+    assert movie.id in returned_ids
+    assert movie_without_cast.id in returned_ids
+    assert movie_without_rating.id not in returned_ids
+
+
+def test_list_movies_with_name_and_rating_filter(
+    client, movie, movie_without_rating, movie_without_cast
+):
+    # 'without' matches movie_without_rating and movie_without_cast
+    # but only movie_without_cast has a rating
+    response = client.get(f'{URL_PREFIX}?name_filter=without&rating_filter=10')
+
+    assert response.status_code == 200
+
+    data = response.json()
+    movies = data['movies']
+    assert len(movies) == 1
+    assert movies[0]['id'] == movie_without_cast.id
