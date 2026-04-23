@@ -29,5 +29,5 @@ class MovieActor(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
-    movie: Mapped['Movie'] = relationship(back_populates='actors')
-    actor: Mapped['Actor'] = relationship(back_populates='movies')
+    movie: Mapped['Movie'] = relationship(back_populates='movie_actors')
+    actor: Mapped['Actor'] = relationship(back_populates='movies_actors')

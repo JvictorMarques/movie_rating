@@ -29,5 +29,5 @@ class UserMovie(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
-    user: Mapped['User'] = relationship(back_populates='movies')
-    movie: Mapped['Movie'] = relationship(back_populates='users')
+    user: Mapped['User'] = relationship(back_populates='user_movies')
+    movie: Mapped['Movie'] = relationship(back_populates='user_movies')

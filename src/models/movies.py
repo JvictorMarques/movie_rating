@@ -9,7 +9,9 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.models.base import Base
 
 if TYPE_CHECKING:
+    from src.models.actors import Actor
     from src.models.movies_actors import MovieActor
+    from src.models.users import User
     from src.models.users_movies import UserMovie
 
 
@@ -28,5 +30,15 @@ class Movie(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
-    users: Mapped[list['UserMovie']] = relationship(back_populates='movie')
-    actors: Mapped[list['MovieActor']] = relationship(back_populates='movie')
+    user_movies: Mapped[list['UserMovie']] = relationship(
+        back_populates='movie', cascade='all, delete-orphan'
+    )
+    movie_actors: Mapped[list['MovieActor']] = relationship(
+        back_populates='movie', cascade='all, delete-orphan'
+    )
+    actors: Mapped[list['Actor']] = relationship(
+        secondary='movies_actors', viewonly=True
+    )
+    users: Mapped[list['User']] = relationship(
+        secondary='users_movies', viewonly=True
+    )
