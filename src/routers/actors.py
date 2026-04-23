@@ -19,3 +19,11 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 )
 async def create_actor(db: Session, actor: ActorCreateSchema):
     return await actors_service.create_actor(db, actor)
+
+
+# TODO - Rate actors
+# TODO - Update actors rating
+# TODO - Update actors
+# TODO - Get actors
+# TODO - List actors
+# TODO - Delete movies

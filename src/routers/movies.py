@@ -8,6 +8,7 @@ from src.schemas.movies import (
     MovieCreateRatingResponseSchema,
     MovieCreateResponseSchema,
     MovieCreateSchema,
+    MovieDetailSchema,
     MovieRatingSchema,
     MovieRatingUpdateResponseSchema,
 )
@@ -56,11 +57,23 @@ async def update_user_movie_rating(
     )
 
 
-# @router.get(
-#     path='/{movie_id}',
-#     status_code=status.HTTP_200_OK,
-#     response_model=MovieDetailSchema,
-#     summary='Get a movie detail'
-# )
-# async def get_movie(db: Session, movie_id: int):
-#     return await movie_services.get_movie_detail(db, movie_id)
+@router.get(
+    path='/{movie_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=MovieDetailSchema,
+    summary='Get a movie detail',
+)
+async def get_movie(db: Session, movie_id: int):
+    return await movie_services.get_movie(db, movie_id)
+
+
+# TODO - List movies
+
+
+@router.delete(
+    path='/{movie_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary='Delete a movie',
+)
+async def delete_movie(db: Session, movie_id: int):
+    await movie_services.delete_movie(db, movie_id)
