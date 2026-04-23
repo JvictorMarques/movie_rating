@@ -64,7 +64,7 @@ class MovieDetailSchema(BaseModel):
     director: Name
     release_date: date
     rating: Optional[Rating] = None
-    cast: list[ActorInformationSchema]
+    cast: Optional[list[ActorInformationSchema]] = None
 
     created_at: datetime
     updated_at: datetime

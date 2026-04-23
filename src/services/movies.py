@@ -9,6 +9,7 @@ from src.schemas.movies import (
     MovieCreateResponseSchema,
     MovieCreateSchema,
     MovieDetailSchema,
+    MovieListSchema,
 )
 from src.services.actors import ACTOR_NOT_FOUND
 from src.services.users import USER_NOT_FOUND
@@ -119,3 +120,23 @@ async def delete_movie(db: AsyncSession, movie_id: int) -> None:
             status_code=status.HTTP_404_NOT_FOUND, detail=MOVIE_NOT_FOUND
         )
     await movies_repository.delete_movie(db, movie_id)
+
+
+async def list_movies(
+    db: AsyncSession,
+    limit: int,
+    offset: int,
+    name_filter: str | None,
+    rating_filter: float | None,
+) -> MovieListSchema:
+    rows = await movies_repository.list_movies(
+        db, limit, offset, name_filter, rating_filter
+    )
+    return MovieListSchema(
+        movies=[
+            MovieDetailSchema(**m.__dict__, cast=m.actors, rating=avg_rating)
+            for m, avg_rating in rows
+        ],
+        limit=limit,
+        offset=offset,
+    )

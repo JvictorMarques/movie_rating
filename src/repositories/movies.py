@@ -93,3 +93,33 @@ async def delete_movie(db: AsyncSession, movie_id: int) -> None:
     movie = await db.get(Movie, movie_id)
     await db.delete(movie)
     await db.commit()
+
+
+async def list_movies(
+    db: AsyncSession,
+    limit: int,
+    offset: int,
+    name_filter: str | None,
+    rating_filter: float | None,
+) -> list[Row[Any]]:
+    avg_subquery = (
+        select(func.avg(UserMovie.rating))
+        .where(UserMovie.movie_id == Movie.id)
+        .correlate(Movie)
+        .scalar_subquery()
+    )
+    query = select(Movie, avg_subquery.label('avg_rating')).options(
+        selectinload(Movie.actors)
+    )
+    if name_filter is not None:
+        query = query.where(Movie.name.ilike(f'%{name_filter}%'))
+    if rating_filter is not None:
+        query = (
+            query
+            .join(Movie.user_movies)
+            .group_by(Movie.id)
+            .having(func.avg(UserMovie.rating) >= rating_filter)
+        )
+    query = query.limit(limit).offset(offset)
+    result = await db.execute(query)
+    return list(result.all())
