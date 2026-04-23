@@ -6,14 +6,14 @@ from pydantic import BaseModel, ConfigDict, EmailStr, SecretStr
 from src.schemas.common import Age, Name
 
 
-class UserSchema(BaseModel):
+class UserCreateSchema(BaseModel):
     name: Name
     email: EmailStr
     age: Age
     password: SecretStr
 
 
-class UserPublicSchema(BaseModel):
+class UserDetailSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
@@ -32,7 +32,7 @@ class UserUpdateSchema(BaseModel):
     password: Optional[SecretStr] = None
 
 
-class UserListPublicSchema(BaseModel):
-    users: list[UserPublicSchema]
+class UserListSchema(BaseModel):
+    users: list[UserDetailSchema]
     limit: int
     offset: int

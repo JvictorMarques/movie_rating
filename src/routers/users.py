@@ -5,9 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
 from src.schemas.users import (
-    UserListPublicSchema,
-    UserPublicSchema,
-    UserSchema,
+    UserCreateSchema,
+    UserDetailSchema,
+    UserListSchema,
     UserUpdateSchema,
 )
 from src.services import users as users_service
@@ -19,7 +19,7 @@ Session = Annotated[AsyncSession, Depends(get_session)]
 @router.get(
     path='/',
     status_code=status.HTTP_200_OK,
-    response_model=UserListPublicSchema,
+    response_model=UserListSchema,
     summary='List all users',
 )
 async def list_users(
@@ -39,8 +39,8 @@ async def list_users(
 @router.get(
     path='/{user_id}',
     status_code=status.HTTP_200_OK,
-    response_model=UserPublicSchema,
-    summary='Get an users',
+    response_model=UserDetailSchema,
+    summary='Get an user',
 )
 async def get_user(db: Session, user_id: int):
     return await users_service.get_user(db, user_id)
@@ -49,11 +49,23 @@ async def get_user(db: Session, user_id: int):
 @router.post(
     path='/',
     status_code=status.HTTP_201_CREATED,
-    response_model=UserPublicSchema,
+    response_model=UserDetailSchema,
     summary='Create an user',
 )
-async def create_user(db: Session, user: UserSchema):
+async def create_user(db: Session, user: UserCreateSchema):
     return await users_service.create_user(db, user)
+
+
+@router.put(
+    path='/{user_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=UserDetailSchema,
+    summary='Update an user',
+)
+async def update_user(
+    db: Session, user_id: int, update_data: UserUpdateSchema
+):
+    return await users_service.update_user(db, user_id, update_data)
 
 
 @router.delete(
@@ -63,15 +75,3 @@ async def create_user(db: Session, user: UserSchema):
 )
 async def delete_user(db: Session, user_id: int):
     await users_service.delete_user(db, user_id)
-
-
-@router.put(
-    path='/{user_id}',
-    status_code=status.HTTP_200_OK,
-    response_model=UserPublicSchema,
-    summary='Update an user',
-)
-async def update_user(
-    db: Session, user_id: int, update_data: UserUpdateSchema
-):
-    return await users_service.update_user(db, user_id, update_data)

@@ -7,7 +7,7 @@ from src.models import Actor
 
 
 async def check_actor_exists(
-    db: AsyncSession, actor_ids: set[int]
+    db: AsyncSession, actor_ids: list[int]
 ) -> set[int]:
     result = await db.scalars(select(Actor.id).where(Actor.id.in_(actor_ids)))
     return set(result.all())
@@ -30,7 +30,7 @@ async def create_actor(db: AsyncSession, actor: dict) -> Actor:
 
 
 async def get_actors_information(
-    db: AsyncSession, actors_id: set[int]
+    db: AsyncSession, actors_id: list[int]
 ) -> Sequence[Row]:
     result = await db.execute(
         select(Actor.id, Actor.name, Actor.age).where(Actor.id.in_(actors_id))

@@ -23,7 +23,7 @@ async def create_movie(db: AsyncSession, movie: dict) -> Movie:
 
 
 async def add_cast_members(
-    db: AsyncSession, movie_id: int, movie_cast_members_ids: set[int]
+    db: AsyncSession, movie_id: int, movie_cast_members_ids: list[int]
 ) -> None:
     for actor_id in movie_cast_members_ids:
         db.add(MovieActor(movie_id=movie_id, actor_id=actor_id))

@@ -37,7 +37,7 @@ async def create_movie(
         actors_exists = await actors_repository.check_actor_exists(
             db, movie.cast_ids
         )
-        if actors_missing_ids := movie.cast_ids - actors_exists:
+        if actors_missing_ids := set(movie.cast_ids) - actors_exists:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f'{ACTOR_NOT_FOUND}: {actors_missing_ids}',

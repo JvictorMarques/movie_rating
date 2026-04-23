@@ -11,7 +11,7 @@ class MovieCreateSchema(BaseModel):
     name: Name
     synopsis: str
     director: Name
-    cast_ids: Optional[set[int]] = None
+    cast_ids: Optional[list[int]] = None
     release_date: date
 
 

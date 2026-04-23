@@ -8,8 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.users import User
 from src.repositories import users as users_repo
 from src.schemas.users import (
-    UserListPublicSchema,
-    UserSchema,
+    UserCreateSchema,
+    UserListSchema,
     UserUpdateSchema,
 )
 
@@ -32,7 +32,7 @@ def verify_password(
     )
 
 
-async def create_user(db: AsyncSession, user_data: UserSchema) -> User:
+async def create_user(db: AsyncSession, user_data: UserCreateSchema) -> User:
     email_exists = await users_repo.email_exists(db, user_data.email)
     if email_exists:
         raise HTTPException(
@@ -54,9 +54,9 @@ async def delete_user(db: AsyncSession, user_id: int) -> None:
 
 async def list_users(
     db: AsyncSession, limit: int, offset: int, search_filter: Optional[str]
-) -> UserListPublicSchema:
+) -> UserListSchema:
     users = await users_repo.list_all_users(db, limit, offset, search_filter)
-    return UserListPublicSchema(users=users, limit=limit, offset=offset)
+    return UserListSchema(users=users, limit=limit, offset=offset)
 
 
 async def get_user(db: AsyncSession, user_id: int) -> User:

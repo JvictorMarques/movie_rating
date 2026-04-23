@@ -4,14 +4,14 @@ from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models.users import User
-from src.schemas.users import UserSchema
+from src.schemas.users import UserCreateSchema
 
 
 async def email_exists(db: AsyncSession, email: str) -> bool | None:
     return await db.scalar(select(exists().where(User.email == email)))
 
 
-async def create_user(db: AsyncSession, user_data: UserSchema) -> User:
+async def create_user(db: AsyncSession, user_data: UserCreateSchema) -> User:
     user = User(
         **user_data.model_dump(exclude={'password'}),
         password=user_data.password.get_secret_value(),
