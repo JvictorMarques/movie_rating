@@ -1,3 +1,16 @@
+## v0.5.0 (2026-04-23)
+
+### Feat
+
+- **movies**: implement list movies route with name and rating filters
+- **movies**: add get movie detail and delete movie routes
+- **movies**: implement get movie detail and delete movie
+- **movies**: implement movie rating create and update endpoints
+
+### Refactor
+
+- **models**: rename association relationships and add viewonly many-to-many
+
 ## v0.4.0 (2026-04-21)
 
 ### Feat
