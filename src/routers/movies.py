@@ -12,6 +12,8 @@ from src.schemas.movies import (
     MovieListSchema,
     MovieRatingSchema,
     MovieRatingUpdateResponseSchema,
+    MovieUpdateResponseSchema,
+    MovieUpdateSchema,
 )
 from src.services import movies as movie_services
 
@@ -76,6 +78,16 @@ async def create_user_movie_rating(
     return await movie_services.create_user_movie_rating(
         db, movie_id, current_user_id, movie.rating
     )
+
+
+@router.put(
+    path='/{movie_id}',
+    status_code=status.HTTP_200_OK,
+    response_model=MovieUpdateResponseSchema,
+    summary='Update movie information',
+)
+async def update_movie(db: Session, movie_id: int, movie: MovieUpdateSchema):
+    return await movie_services.update_movie(db, movie_id, movie)
 
 
 @router.put(

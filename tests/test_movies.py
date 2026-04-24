@@ -324,3 +324,120 @@ def test_list_movies_with_name_and_rating_filter(
     movies = data['movies']
     assert len(movies) == 1
     assert movies[0]['id'] == movie_without_cast.id
+
+
+def test_update_movie(client, movie_without_cast, actor, other_actor):
+    payload = {
+        'name': 'test_update_movie_name',
+        'synopsis': 'test_update_movie_synopsis',
+        'director': 'test_update_movie_director',
+        'cast_ids': [actor.id, other_actor.id],
+        'release_date': '2000-01-01',
+    }
+
+    response = client.put(
+        f'{URL_PREFIX}/{movie_without_cast.id}', json=payload
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data['id'] == movie_without_cast.id
+    assert data['name'] == payload['name']
+    assert data['synopsis'] == payload['synopsis']
+    assert data['director'] == payload['director']
+    assert data['release_date'] == payload['release_date']
+    assert len(data['cast']) == 2
+    assert data['cast'][0]['id'] == actor.id
+    assert data['cast'][0]['name'] == actor.name
+    assert data['cast'][0]['age'] == actor.age
+    assert data['cast'][1]['id'] == other_actor.id
+    assert data['cast'][1]['name'] == other_actor.name
+    assert data['cast'][1]['age'] == other_actor.age
+    assert 'updated_at' in data
+
+
+def test_update_noexistent_movie(client, actor, other_actor):
+    payload = {
+        'name': 'test_update_movie_name',
+        'synopsis': 'test_update_movie_synopsis',
+        'director': 'test_update_movie_director',
+        'cast_ids': [actor.id, other_actor.id],
+        'release_date': '2000-01-01',
+    }
+
+    response = client.put(f'{URL_PREFIX}/999', json=payload)
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data['detail'] == MOVIE_NOT_FOUND
+
+
+def test_update_movie_existent_name(
+    client, movie, movie_without_cast, actor, other_actor
+):
+    payload = {
+        'name': movie_without_cast.name,
+        'synopsis': 'test_update_movie_synopsis',
+        'director': 'test_update_movie_director',
+        'cast_ids': [actor.id, other_actor.id],
+        'release_date': '2000-01-01',
+    }
+
+    response = client.put(f'{URL_PREFIX}/{movie.id}', json=payload)
+
+    assert response.status_code == 409
+
+    data = response.json()
+
+    assert data['detail'] == MOVIE_EXISTS
+
+
+def test_update_movie_actor_not_exists(
+    client, movie_without_cast, actor, other_actor
+):
+    payload = {
+        'name': 'test_update_movie_name',
+        'synopsis': 'test_update_movie_synopsis',
+        'director': 'test_update_movie_director',
+        'cast_ids': [actor.id, other_actor.id, 999],
+        'release_date': '2000-01-01',
+    }
+
+    response = client.put(
+        f'{URL_PREFIX}/{movie_without_cast.id}', json=payload
+    )
+
+    assert response.status_code == 404
+
+    data = response.json()
+
+    assert data['detail'] == f'{ACTOR_NOT_FOUND}: {{999}}'
+
+
+def test_update_movie_actor_without_update_cast(client, movie):
+    actors = list(movie.actors)
+    payload = {
+        'name': 'test_update_movie_name',
+        'synopsis': 'test_update_movie_synopsis',
+        'director': 'test_update_movie_director',
+        'release_date': '2000-01-01',
+    }
+
+    response = client.put(f'{URL_PREFIX}/{movie.id}', json=payload)
+
+    data = response.json()
+    assert data['id'] == movie.id
+    assert data['name'] == payload['name']
+    assert data['synopsis'] == payload['synopsis']
+    assert data['director'] == payload['director']
+    assert data['release_date'] == payload['release_date']
+    assert len(data['cast']) == len(actors)
+    cast_by_id = {a['id']: a for a in data['cast']}
+    for actor in actors:
+        assert actor.id in cast_by_id
+        assert cast_by_id[actor.id]['name'] == actor.name
+        assert cast_by_id[actor.id]['age'] == actor.age
+    assert 'updated_at' in data
