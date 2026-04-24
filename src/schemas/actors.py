@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
-from src.schemas.common import Age, Name, Rating
+from src.schemas.common import Age, Name
 
 
 class ActorCreateSchema(BaseModel):
@@ -34,7 +34,6 @@ class ActorDetailSchema(BaseModel):
     id: int
     name: Name
     age: Age
-    rating: Rating
 
     created_at: datetime
     updated_at: datetime
