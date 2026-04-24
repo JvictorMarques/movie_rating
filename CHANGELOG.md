@@ -1,61 +1,79 @@
-## v0.5.0 (2026-04-23)
+## [Actors] v0.3.0 (2026-04-21)
 
 ### Feat
+
+- **schemas**: add actors schema file
+- **actors**: add actors repository, service, and router
+
+---
+
+## [Movies] v0.2.x
+
+### v0.2.2 (2026-04-23)
+
+#### Feat
 
 - **movies**: implement list movies route with name and rating filters
 - **movies**: add get movie detail and delete movie routes
 - **movies**: implement get movie detail and delete movie
 - **movies**: implement movie rating create and update endpoints
 
-### Refactor
+#### Refactor
 
 - **models**: rename association relationships and add viewonly many-to-many
 
-## v0.4.0 (2026-04-21)
+### v0.2.1 (2026-04-21)
 
-### Feat
+#### Feat
 
 - **app**: register movies and actors routers
 - **movies**: add movies repository, service, and router
-- **actors**: add actors repository, service, and router
-- **models**: add release_date to Movie and ondelete CASCADE to intermediate tables
-- **schemas**: add actors schema file
-- **schemas**: add common type aliases module
 
-### Refactor
+### v0.2.0 (2026-04-20)
+
+#### Feat
+
+- **schemas**: add common type aliases module
+- **schemas**: add Name type alias and movies schema file
+- **models**: enforce nullable=False and unique constraints on name fields
+- **models**: add release_date to Movie and ondelete CASCADE to intermediate tables
+
+#### Refactor
 
 - **schemas**: rename and expand actors and movies schemas
 - **schemas**: use common type aliases in movies and users schemas
 
-## v0.3.0 (2026-04-20)
+---
 
-### Feat
+## [Users] v0.1.x
 
-- **schemas**: add Name type alias and movies schema file
-- **models**: enforce nullable=False and unique constraints on name fields
+### v0.1.1 (2026-04-20)
 
-## v0.2.0 (2026-04-20)
-
-### Feat
+#### Feat
 
 - **users**: wire update_user endpoint in router
 - **users**: implement update_user in repository, schema, and service layers
 - **users**: add get_user and update_user endpoints; update list_users query params
 - **users**: add pagination, search filter and get_user to service/repo layer
-- **users**: add users router and register in app
-- **users**: add user service layer with password hashing
-- **users**: add user repository layer
-- **users**: add user Pydantic schemas
-- **migrations**: add Alembic migration scripts for all tables
-- **models**: add users and association table models
-- **models**: add base model, movies, and actors SQLAlchemy models
-- **core**: add database connection and application settings
-- **app**: add FastAPI application entry point and package structure
 
-### Fix
+#### Fix
 
 - **users**: update user_exist return type to include None
 
-### Refactor
+#### Refactor
 
 - **users**: rename filter to search_filter and fix wildcard pattern
+
+### v0.1.0 (2026-04-20)
+
+#### Feat
+
+- **app**: add FastAPI application entry point and package structure
+- **core**: add database connection and application settings
+- **models**: add base model, movies, and actors SQLAlchemy models
+- **models**: add users and association table models
+- **migrations**: add Alembic migration scripts for all tables
+- **users**: add user Pydantic schemas
+- **users**: add user repository layer
+- **users**: add user service layer with password hashing
+- **users**: add users router and register in app
