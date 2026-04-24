@@ -33,10 +33,17 @@ async def create_actor(db: Session, actor: ActorCreateSchema):
     summary='Update an actor/actress',
 )
 async def update_user(db: Session, actor_id: int, actor: ActorUpdateSchema):
-    pass
+    return await actors_service.update_actor(db, actor_id, actor)
 
 
-# TODO - Update actors
+@router.delete(
+    path='/{actor_id}',
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary='Delete an actor/actress',
+)
+async def delete_user(db: Session, actor_id: int):
+    await actors_service.delete_actor(db, actor_id)
+
+
 # TODO - Get actors
 # TODO - List actors
-# TODO - Delete actors

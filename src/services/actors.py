@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Actor
 from src.repositories import actors as actors_repository
-from src.schemas.actors import ActorCreateSchema
+from src.schemas.actors import ActorCreateSchema, ActorUpdateSchema
 
 ACTOR_EXISTS = 'Actor/Actress already exists'
 ACTOR_NOT_FOUND = 'Actor not found'
@@ -19,3 +19,32 @@ async def create_actor(db: AsyncSession, actor: ActorCreateSchema) -> Actor:
         )
     actor_data = actor.model_dump()
     return await actors_repository.create_actor(db, actor_data)
+
+
+async def update_actor(
+    db: AsyncSession, actor_id: int, actor: ActorUpdateSchema
+) -> Actor:
+    db_actor = await actors_repository.get_actor(db, actor_id)
+    if not db_actor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACTOR_NOT_FOUND
+        )
+    actor_name_exists = (
+        actor.name
+        and await actors_repository.check_actor_name_exists(db, actor.name)
+    )
+    if actor_name_exists:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=ACTOR_EXISTS
+        )
+    actor_data = actor.model_dump()
+    return await actors_repository.update_actor(db, actor_data, db_actor)
+
+
+async def delete_actor(db: AsyncSession, actor_id: int) -> None:
+    db_actor = await actors_repository.get_actor(db, actor_id)
+    if not db_actor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACTOR_NOT_FOUND
+        )
+    await actors_repository.delete_actor(db, db_actor)

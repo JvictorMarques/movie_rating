@@ -6,6 +6,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models import Actor
 
 
+async def get_actor(db: AsyncSession, actor_id: int) -> Actor | None:
+    return await db.get(Actor, actor_id)
+
+
 async def check_actor_exist(db: AsyncSession, actor_id: int) -> bool | None:
     return await db.scalar(select(exists().where(Actor.id == actor_id)))
 
@@ -40,3 +44,19 @@ async def get_actors_information(
         select(Actor.id, Actor.name, Actor.age).where(Actor.id.in_(actors_id))
     )
     return result.all()
+
+
+async def update_actor(
+    db: AsyncSession, update_actor_data: dict, db_actor: Actor
+) -> Actor:
+    for key, value in update_actor_data.items():
+        setattr(db_actor, key, value)
+    await db.commit()
+    await db.refresh(db_actor)
+
+    return db_actor
+
+
+async def delete_actor(db: AsyncSession, actor: Actor) -> None:
+    await db.delete(actor)
+    await db.commit()
