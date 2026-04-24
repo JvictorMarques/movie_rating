@@ -1,9 +1,14 @@
-from alembic.environment import Any
-from sqlalchemy import Row, exists, func, select
+from typing import Any
+
+from sqlalchemy import Row, delete, exists, func, insert, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from src.models import Movie, MovieActor, UserMovie
+
+
+async def get_movie(db: AsyncSession, movie_id: int) -> Movie | None:
+    return await db.get(Movie, movie_id)
 
 
 async def check_movie_name_exists(
@@ -73,6 +78,34 @@ async def update_user_rating(
     return user_rating
 
 
+async def update_cast(
+    db: AsyncSession, movie_id: int, update_cast_ids: list[int]
+) -> None:
+    await db.execute(delete(MovieActor).where(MovieActor.movie_id == movie_id))
+
+    if update_cast_ids:
+        await db.execute(
+            insert(MovieActor),
+            [
+                {'movie_id': movie_id, 'actor_id': actor_id}
+                for actor_id in update_cast_ids
+            ],
+        )
+
+    await db.commit()
+
+
+async def update_movie(
+    db: AsyncSession, movie: Movie, movie_data: dict
+) -> Movie:
+    for field, value in movie_data.items():
+        setattr(movie, field, value)
+    await db.commit()
+    await db.refresh(movie)
+
+    return movie
+
+
 async def get_movie_information(db: AsyncSession, movie_id: int) -> Row[Any]:
     avg_subquery = (
         select(func.avg(UserMovie.rating))
@@ -122,4 +155,20 @@ async def list_movies(
         )
     query = query.limit(limit).offset(offset)
     result = await db.execute(query)
+    return list(result.all())
+
+
+async def get_movie_rating(db: AsyncSession, movie_id: int) -> float | None:
+    result = await db.execute(
+        select(func.avg(UserMovie.rating)).where(
+            UserMovie.movie_id == movie_id
+        )
+    )
+    return result.scalar()
+
+
+async def get_movie_cast_ids(db: AsyncSession, movie_id: int) -> list[int]:
+    result = await db.scalars(
+        select(MovieActor.actor_id).where(MovieActor.movie_id == movie_id)
+    )
     return list(result.all())

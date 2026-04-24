@@ -6,7 +6,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models import Actor
 
 
-async def check_actor_exists(
+async def check_actor_exist(db: AsyncSession, actor_id: int) -> bool | None:
+    return await db.scalar(select(exists().where(Actor.id == actor_id)))
+
+
+async def check_actors_exist(
     db: AsyncSession, actor_ids: list[int]
 ) -> set[int]:
     result = await db.scalars(select(Actor.id).where(Actor.id.in_(actor_ids)))

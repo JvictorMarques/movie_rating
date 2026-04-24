@@ -78,6 +78,20 @@ class MovieUpdateSchema(BaseModel):
     release_date: Optional[date] = None
 
 
+class MovieUpdateResponseSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: Name
+    synopsis: str
+    director: Name
+    release_date: date
+    rating: Optional[Rating] = None
+    cast: Optional[list[ActorInformationSchema]] = None
+
+    updated_at: datetime
+
+
 class MovieListSchema(BaseModel):
     movies: list[MovieDetailSchema]
     limit: int
