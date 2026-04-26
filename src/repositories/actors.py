@@ -60,3 +60,14 @@ async def update_actor(
 async def delete_actor(db: AsyncSession, actor: Actor) -> None:
     await db.delete(actor)
     await db.commit()
+
+
+async def list_actors(
+    db: AsyncSession, limit: int, offset: int, search_filter: str | None
+) -> list[Actor]:
+    query = select(Actor).offset(offset).limit(limit)
+    if search_filter:
+        query = query.where(Actor.name.ilike(f'%{search_filter}%'))
+    result = await db.scalars(query)
+
+    return list(result.all())

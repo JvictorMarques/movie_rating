@@ -3,7 +3,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.models import Actor
 from src.repositories import actors as actors_repository
-from src.schemas.actors import ActorCreateSchema, ActorUpdateSchema
+from src.schemas.actors import (
+    ActorCreateSchema,
+    ActorListSchema,
+    ActorUpdateSchema,
+)
 
 ACTOR_EXISTS = 'Actor/Actress already exists'
 ACTOR_NOT_FOUND = 'Actor not found'
@@ -48,3 +52,22 @@ async def delete_actor(db: AsyncSession, actor_id: int) -> None:
             status_code=status.HTTP_404_NOT_FOUND, detail=ACTOR_NOT_FOUND
         )
     await actors_repository.delete_actor(db, db_actor)
+
+
+async def get_actor(db: AsyncSession, actor_id: int) -> Actor:
+    db_actor = await actors_repository.get_actor(db, actor_id)
+    if not db_actor:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=ACTOR_NOT_FOUND
+        )
+
+    return db_actor
+
+
+async def list_actors(
+    db: AsyncSession, limit: int, offset: int, search_filter: str | None
+) -> ActorListSchema:
+    actors = await actors_repository.list_actors(
+        db, limit, offset, search_filter
+    )
+    return ActorListSchema(actors=actors, limit=limit, offset=offset)
