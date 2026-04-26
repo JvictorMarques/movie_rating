@@ -1,3 +1,46 @@
+## v1.0.0 (2026-04-26)
+
+### Feat
+
+- **actors**: implement get and list actor routes
+- **actors**: implement update and delete actor routes
+- **movies**: add update movie route and tests
+- **schemas**: add MovieUpdateResponseSchema
+- **models**: remove rating field from MovieActor association table
+
+### Refactor
+
+- standardize schema names, route ordering, and type consistency
+
+## v0.5.0 (2026-04-23)
+
+### Feat
+
+- **movies**: implement list movies route with name and rating filters
+- **movies**: add get movie detail and delete movie routes
+- **movies**: implement get movie detail and delete movie
+- **movies**: implement movie rating create and update endpoints
+
+### Refactor
+
+- **models**: rename association relationships and add viewonly many-to-many
+
+## v0.4.0 (2026-04-21)
+
+### Feat
+
+- **app**: register movies and actors routers
+- **movies**: add movies repository, service, and router
+- **actors**: add actors repository, service, and router
+- **models**: add release_date to Movie and ondelete CASCADE to intermediate tables
+- **schemas**: add actors schema file
+- **schemas**: add common type aliases module
+
+### Refactor
+
+- **schemas**: rename and expand actors and movies schemas
+- **schemas**: use common type aliases in movies and users schemas
+
 ## [Actors] v0.3.0 (2026-04-21)
 
 ### Feat
