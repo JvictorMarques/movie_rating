@@ -10,10 +10,6 @@ async def get_actor(db: AsyncSession, actor_id: int) -> Actor | None:
     return await db.get(Actor, actor_id)
 
 
-async def check_actor_exist(db: AsyncSession, actor_id: int) -> bool | None:
-    return await db.scalar(select(exists().where(Actor.id == actor_id)))
-
-
 async def check_actors_exist(
     db: AsyncSession, actor_ids: list[int]
 ) -> set[int]:

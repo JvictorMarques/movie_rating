@@ -41,7 +41,7 @@ async def update_actor(
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT, detail=ACTOR_EXISTS
         )
-    actor_data = actor.model_dump()
+    actor_data = actor.model_dump(exclude_unset=True)
     return await actors_repository.update_actor(db, actor_data, db_actor)
 
 
