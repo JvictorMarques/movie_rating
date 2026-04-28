@@ -9,6 +9,14 @@
 
 - **settings**: rename DB_ADRESS to DB_ADDRESS
 
+### Docs
+
+- add custom styles and integrate extra CSS for theme enhancement
+- update version badge in README to 1.0.0
+- update README and CLAUDE.md to reflect JWT authentication
+- add bilingual documentation (en-US and pt-BR)
+- add mkdocs i18n support and improve theme configuration
+
 ## v0.6.0 (2026-04-27)
 
 ### Feat
