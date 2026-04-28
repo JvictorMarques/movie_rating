@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASSWORD: str
     DB_DATABASE: str
-    DB_ADRESS: str
+    DB_ADDRESS: str
     DB_PORT: int
 
     JWT_SECRET_KEY: str
@@ -18,4 +18,4 @@ class Settings(BaseSettings):
 
     @property
     def DATABASE_URL(self) -> str:
-        return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_ADRESS}:{self.DB_PORT}/{self.DB_DATABASE}'
+        return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_ADDRESS}:{self.DB_PORT}/{self.DB_DATABASE}'
