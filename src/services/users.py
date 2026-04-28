@@ -1,10 +1,10 @@
 from typing import Optional
 
 from fastapi import HTTPException, status
-from pwdlib import PasswordHash
-from pydantic import SecretStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.constants import EMAIL_EXISTS, USER_NOT_FOUND
+from src.core.security import get_password_hash
 from src.models.users import User
 from src.repositories import users as users_repo
 from src.schemas.users import (
@@ -12,24 +12,6 @@ from src.schemas.users import (
     UserListSchema,
     UserUpdateSchema,
 )
-
-USER_NOT_FOUND = 'User not found'
-EMAIL_EXISTS = 'Email already exists'
-
-
-def get_password_hash(password: SecretStr) -> SecretStr:
-    return SecretStr(
-        PasswordHash.recommended().hash(password.get_secret_value())
-    )
-
-
-def verify_password(
-    plain_password: SecretStr, hashed_password: SecretStr
-) -> bool:
-    return PasswordHash.recommended().verify(
-        plain_password.get_secret_value(),
-        hashed_password.get_secret_value(),
-    )
 
 
 async def create_user(db: AsyncSession, user_data: UserCreateSchema) -> User:

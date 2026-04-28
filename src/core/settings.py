@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     DB_ADRESS: str
     DB_PORT: int
 
+    JWT_SECRET_KEY: str
+    JWT_ALGORITHM: str = 'HS256'
+    JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
+
     @property
     def DATABASE_URL(self) -> str:
         return f'postgresql+psycopg://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_ADRESS}:{self.DB_PORT}/{self.DB_DATABASE}'

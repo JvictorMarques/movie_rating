@@ -1,6 +1,13 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.constants import (
+    ACTOR_NOT_FOUND,
+    MOVIE_EXISTS,
+    MOVIE_HAS_RATE,
+    MOVIE_NOT_FOUND,
+    USER_NOT_FOUND,
+)
 from src.models import UserMovie
 from src.repositories import actors as actors_repository
 from src.repositories import movies as movies_repository
@@ -13,12 +20,6 @@ from src.schemas.movies import (
     MovieUpdateResponseSchema,
     MovieUpdateSchema,
 )
-from src.services.actors import ACTOR_NOT_FOUND
-from src.services.users import USER_NOT_FOUND
-
-MOVIE_EXISTS = 'Movie already exists'
-MOVIE_NOT_FOUND = 'Movie not found'
-MOVIE_HAS_RATE = 'Movie already has been rated'
 
 
 async def create_movie(

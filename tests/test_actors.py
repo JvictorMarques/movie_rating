@@ -1,4 +1,4 @@
-from src.services.actors import ACTOR_EXISTS, ACTOR_NOT_FOUND
+from src.core.constants import ACTOR_EXISTS, ACTOR_NOT_FOUND
 
 URL_PREFIX = '/api/v1/actors'
 

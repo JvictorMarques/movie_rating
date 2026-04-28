@@ -1,8 +1,10 @@
 from fastapi import FastAPI, status
 
-from src.routers import actors, movies, users
+from src.routers import actors, auth, movies, users
 
 app = FastAPI()
+
+app.include_router(prefix='/api/v1/auth', tags=['auth'], router=auth.router)
 
 app.include_router(prefix='/api/v1/users', tags=['users'], router=users.router)
 

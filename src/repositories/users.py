@@ -57,3 +57,8 @@ async def update_user(db: AsyncSession, user: User, update_data: dict) -> User:
 
 async def check_user_exists(db: AsyncSession, user_id: int) -> bool | None:
     return await db.scalar(select(exists().where(User.id == user_id)))
+
+
+async def get_user_by_email(db: AsyncSession, email: str) -> User | None:
+    result = await db.execute(select(User).where(User.email == email))
+    return result.scalar_one_or_none()

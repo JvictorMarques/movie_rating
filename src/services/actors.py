@@ -1,6 +1,7 @@
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.constants import ACTOR_EXISTS, ACTOR_NOT_FOUND
 from src.models import Actor
 from src.repositories import actors as actors_repository
 from src.schemas.actors import (
@@ -8,9 +9,6 @@ from src.schemas.actors import (
     ActorListSchema,
     ActorUpdateSchema,
 )
-
-ACTOR_EXISTS = 'Actor/Actress already exists'
-ACTOR_NOT_FOUND = 'Actor not found'
 
 
 async def create_actor(db: AsyncSession, actor: ActorCreateSchema) -> Actor:
