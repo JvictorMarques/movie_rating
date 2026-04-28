@@ -1,4 +1,15 @@
-## v1.0.0 (2026-04-26)
+## v1.0.0 (2026-04-28)
+
+### Feat
+
+- **routes**: protect user and movie routes with JWT authentication
+- **auth**: implement JWT authentication and refactor service constants
+
+### Fix
+
+- **settings**: rename DB_ADRESS to DB_ADDRESS
+
+## v0.6.0 (2026-04-27)
 
 ### Feat
 
@@ -7,6 +18,10 @@
 - **movies**: add update movie route and tests
 - **schemas**: add MovieUpdateResponseSchema
 - **models**: remove rating field from MovieActor association table
+
+### Fix
+
+- **actors**: fix partial update overwriting unset fields and remove dead code
 
 ### Refactor
 
