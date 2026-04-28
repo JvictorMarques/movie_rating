@@ -31,14 +31,16 @@ The app is a FastAPI REST API (`app.py`) with routes mounted at `/api/v1/<resour
 - `src/repositories/` — raw SQLAlchemy queries; no HTTP concerns
 - `src/schemas/` — Pydantic models for request/response validation; `common.py` holds shared type aliases (`Age`, `Name`, `Rating`)
 - `src/models/` — SQLAlchemy ORM models; all inherit from `src/models/base.py`
-- `src/core/` — `database.py` (engine + session factory), `settings.py` (env-based config via pydantic-settings)
+- `src/core/` — `database.py` (engine + session factory), `settings.py` (env-based config via pydantic-settings), `security.py` (password hashing + JWT encode/decode), `constants.py` (shared error message strings)
 
 **Data model overview:**
 - `User` ↔ `Movie` via `UserMovie` (many-to-many with `rating` field)
 - `Movie` ↔ `Actor` via `MovieActor` (many-to-many)
 - Passwords are hashed with `pwdlib[argon2]`; stored as `str`, exposed as `SecretStr` in schemas
 
-**Settings** are read from `.env` with these required vars: `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`, `DB_ADRESS`, `DB_PORT`.
+**Authentication** uses JWT (PyJWT). `src/core/security.py` handles token creation/verification and password hashing. `src/services/auth.py` exposes `get_current_user` (FastAPI dependency) and `verify_user_ownership`. Routes that mutate user data (`PUT`/`DELETE /api/v1/users/{id}`) and rating endpoints require a `Bearer` token. The `src/routers/auth.py` router provides `POST /token` and `POST /refresh_token`.
+
+**Settings** are read from `.env` with these required vars: `DB_USER`, `DB_PASSWORD`, `DB_DATABASE`, `DB_ADRESS`, `DB_PORT`, `JWT_SECRET_KEY`. Optional: `JWT_ALGORITHM` (default `HS256`), `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` (default `15`).
 
 **Tests** use `pytest-asyncio` with an in-memory SQLite engine. The `session` fixture creates/drops tables per test; the `client` fixture overrides `get_session` dependency via `app.dependency_overrides`. Tests live in `tests/`, fixtures in `tests/conftest.py`.
 

@@ -13,9 +13,10 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 
 ## Features
 
-- **Users** — create, list, retrieve, update, and delete users
+- **Authentication** — JWT-based login (`POST /api/v1/auth/token`) and token refresh; protected routes require a `Bearer` token
+- **Users** — create, list, retrieve, update, and delete users (update/delete require ownership via JWT)
 - **Movies** — create movies with director, synopsis, release date, and cast; list with optional filters by name and rating; update and delete
-- **Ratings** — users can rate movies and update their existing ratings
+- **Ratings** — authenticated users can rate movies and update their existing ratings
 - **Actors** — create, list, retrieve, update, and delete actors/actresses; linked to movies via a many-to-many relationship
 - **Health check** — `GET /health` endpoint for liveness probes
 
@@ -29,6 +30,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 | ORM | [SQLAlchemy 2.0](https://docs.sqlalchemy.org/) (async) |
 | Database | PostgreSQL 16 |
 | Validation | [Pydantic v2](https://docs.pydantic.dev/) |
+| Authentication | [PyJWT](https://pyjwt.readthedocs.io/) (JWT Bearer tokens) |
 | Password hashing | [pwdlib](https://github.com/frankie567/pwdlib) (Argon2) |
 | Configuration | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |
 | Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
@@ -71,6 +73,9 @@ DB_PASSWORD=postgres
 DB_DATABASE=movie_rating
 DB_ADRESS=localhost
 DB_PORT=5432
+JWT_SECRET_KEY=your-secret-key
+JWT_ALGORITHM=HS256
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
 ```
 
 ### 4. Start the database
@@ -116,12 +121,40 @@ docker compose up -d
 | `DB_DATABASE` | Database name |
 | `DB_ADRESS` | Database host address |
 | `DB_PORT` | PostgreSQL port (typically `5432`) |
+| `JWT_SECRET_KEY` | Secret key for signing JWT tokens |
+| `JWT_ALGORITHM` | JWT signing algorithm (default: `HS256`) |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Token TTL in minutes (default: `15`) |
 
 ---
 
 ## API Reference
 
-All endpoints are prefixed with `/api/v1`.
+All endpoints are prefixed with `/api/v1`. Endpoints marked 🔒 require a `Authorization: Bearer <token>` header.
+
+### Auth — `/api/v1/auth`
+
+```http
+POST   /api/v1/auth/token          # Obtain a JWT access token
+POST   /api/v1/auth/refresh_token  # Refresh token (🔒 requires valid token)
+```
+
+**Login — request body:**
+```json
+{
+  "email": "john@example.com",
+  "password": "secret"
+}
+```
+
+**Response:**
+```json
+{
+  "access_token": "<jwt>",
+  "token_type": "bearer"
+}
+```
+
+---
 
 ### Users — `/api/v1/users`
 
@@ -129,8 +162,8 @@ All endpoints are prefixed with `/api/v1`.
 GET    /api/v1/users               # List all users (supports ?limit, ?offset, ?search_filter)
 GET    /api/v1/users/{id}          # Get a user by ID
 POST   /api/v1/users               # Create a user
-PUT    /api/v1/users/{id}          # Update a user (partial update supported)
-DELETE /api/v1/users/{id}          # Delete a user
+PUT    /api/v1/users/{id}          # 🔒 Update a user (must own the account)
+DELETE /api/v1/users/{id}          # 🔒 Delete a user (must own the account)
 ```
 
 **Create user — request body:**
@@ -153,8 +186,8 @@ GET    /api/v1/movies/{id}         # Get a movie by ID (includes cast and rating
 POST   /api/v1/movies              # Create a movie
 PUT    /api/v1/movies/{id}         # Update a movie
 DELETE /api/v1/movies/{id}         # Delete a movie
-POST   /api/v1/movies/{id}/ratings # Rate a movie
-PUT    /api/v1/movies/{id}/ratings # Update an existing rating
+POST   /api/v1/movies/{id}/ratings # 🔒 Rate a movie
+PUT    /api/v1/movies/{id}/ratings # 🔒 Update an existing rating
 ```
 
 **Create movie — request body:**
@@ -175,7 +208,7 @@ PUT    /api/v1/movies/{id}/ratings # Update an existing rating
 }
 ```
 
-> Rating must be between 0 (exclusive) and 10 (inclusive). Pass `?current_user_id={id}` as a query parameter to identify the user.
+> Rating must be between 0 (exclusive) and 10 (inclusive). The authenticated user is identified via the `Bearer` token.
 
 ---
 
@@ -223,7 +256,9 @@ movie-rating/
 ├── src/
 │   ├── core/
 │   │   ├── database.py     # Async engine and session factory
-│   │   └── settings.py     # Environment-based config (pydantic-settings)
+│   │   ├── settings.py     # Environment-based config (pydantic-settings)
+│   │   ├── security.py     # JWT creation/verification, password hashing
+│   │   └── constants.py    # Shared error message strings
 │   ├── models/
 │   │   ├── base.py         # SQLAlchemy declarative base
 │   │   ├── users.py
@@ -236,20 +271,24 @@ movie-rating/
 │   │   ├── movies.py
 │   │   └── actors.py
 │   ├── services/           # Business logic, raises HTTPException
+│   │   ├── auth.py         # get_current_user dependency, ownership check
 │   │   ├── users.py
 │   │   ├── movies.py
 │   │   └── actors.py
 │   ├── routers/            # FastAPI route handlers
+│   │   ├── auth.py         # POST /token, POST /refresh_token
 │   │   ├── users.py
 │   │   ├── movies.py
 │   │   └── actors.py
 │   └── schemas/            # Pydantic request/response models
+│       ├── auth.py         # Token, LoginRequest
 │       ├── common.py       # Shared type aliases (Age, Name, Rating)
 │       ├── users.py
 │       ├── movies.py
 │       └── actors.py
 └── tests/
     ├── conftest.py         # Fixtures (session, client)
+    ├── test_auth.py
     ├── test_users.py
     ├── test_movies.py
     └── test_actors.py
