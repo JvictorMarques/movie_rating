@@ -5,6 +5,8 @@ site_author: Jvictor
 theme:
   name: material
   language: en
+  icon:
+    logo: material/movie-open
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
@@ -34,6 +36,9 @@ theme:
     - navigation.indexes
     - navigation.top
     - navigation.tabs
+
+extra_css:
+  - stylesheets/extra.css
 
 extra:
   alternate:
