@@ -4,16 +4,19 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
+from src.models.users import User
 from src.schemas.users import (
     UserCreateSchema,
     UserDetailSchema,
     UserListSchema,
     UserUpdateSchema,
 )
+from src.services import auth as auth_services
 from src.services import users as users_service
 
 router = APIRouter()
 Session = Annotated[AsyncSession, Depends(get_session)]
+CurrentUser = Annotated[User, Depends(auth_services.get_current_user)]
 
 
 @router.get(
@@ -63,8 +66,12 @@ async def create_user(db: Session, user: UserCreateSchema):
     summary='Update an user',
 )
 async def update_user(
-    db: Session, user_id: int, update_data: UserUpdateSchema
+    db: Session,
+    current_user: CurrentUser,
+    user_id: int,
+    update_data: UserUpdateSchema,
 ):
+    auth_services.verify_user_ownership(current_user, user_id)
     return await users_service.update_user(db, user_id, update_data)
 
 
@@ -73,5 +80,6 @@ async def update_user(
     status_code=status.HTTP_204_NO_CONTENT,
     summary='Delete an user',
 )
-async def delete_user(db: Session, user_id: int):
+async def delete_user(db: Session, current_user: CurrentUser, user_id: int):
+    auth_services.verify_user_ownership(current_user, user_id)
     await users_service.delete_user(db, user_id)

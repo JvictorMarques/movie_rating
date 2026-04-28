@@ -9,6 +9,7 @@ from sqlalchemy.orm import selectinload
 
 from app import app
 from src.core.database import get_session
+from src.core.security import create_access_token
 from src.models import Actor, Base, Movie, MovieActor, User, UserMovie
 
 
@@ -55,6 +56,16 @@ async def user(session):
     await session.refresh(user)
 
     return user
+
+
+@pytest.fixture
+def token(user):
+    return create_access_token(data={'sub': str(user.id)})
+
+
+@pytest.fixture
+def other_token(other_user):
+    return create_access_token(data={'sub': str(other_user.id)})
 
 
 @pytest_asyncio.fixture

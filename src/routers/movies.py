@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import get_session
+from src.models.users import User
 from src.schemas.movies import (
     MovieCreateRatingResponseSchema,
     MovieCreateResponseSchema,
@@ -15,11 +16,13 @@ from src.schemas.movies import (
     MovieUpdateResponseSchema,
     MovieUpdateSchema,
 )
+from src.services import auth as auth_services
 from src.services import movies as movie_services
 
 router = APIRouter()
 
 Session = Annotated[AsyncSession, Depends(get_session)]
+CurrentUser = Annotated[User, Depends(auth_services.get_current_user)]
 
 
 @router.get(
@@ -73,10 +76,13 @@ async def create_movie(db: Session, movie: MovieCreateSchema):
     summary='Rate a movie',
 )
 async def create_user_movie_rating(
-    db: Session, movie_id: int, current_user_id: int, movie: MovieRatingSchema
+    db: Session,
+    current_user: CurrentUser,
+    movie_id: int,
+    movie: MovieRatingSchema,
 ):
     return await movie_services.create_user_movie_rating(
-        db, movie_id, current_user_id, movie.rating
+        db, movie_id, current_user.id, movie.rating
     )
 
 
@@ -97,10 +103,13 @@ async def update_movie(db: Session, movie_id: int, movie: MovieUpdateSchema):
     summary='Update a movie rating',
 )
 async def update_user_movie_rating(
-    db: Session, movie_id: int, current_user_id: int, movie: MovieRatingSchema
+    db: Session,
+    current_user: CurrentUser,
+    movie_id: int,
+    movie: MovieRatingSchema,
 ):
     return await movie_services.update_user_movie_rating(
-        db, movie_id, current_user_id, movie.rating
+        db, movie_id, current_user.id, movie.rating
     )
 
 

@@ -1,16 +1,16 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, EmailStr, SecretStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
-from src.schemas.common import Age, Name
+from src.schemas.common import Age, Name, Password
 
 
 class UserCreateSchema(BaseModel):
     name: Name
     email: EmailStr
     age: Age
-    password: SecretStr
+    password: Password
 
 
 class UserDetailSchema(BaseModel):
@@ -29,7 +29,7 @@ class UserUpdateSchema(BaseModel):
     name: Optional[Name] = None
     email: Optional[EmailStr] = None
     age: Optional[Age] = None
-    password: Optional[SecretStr] = None
+    password: Optional[Password] = None
 
 
 class UserListSchema(BaseModel):

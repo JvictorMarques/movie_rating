@@ -1,6 +1,9 @@
-from src.services.actors import ACTOR_NOT_FOUND
-from src.services.movies import MOVIE_EXISTS, MOVIE_HAS_RATE, MOVIE_NOT_FOUND
-from src.services.users import USER_NOT_FOUND
+from src.core.constants import (
+    ACTOR_NOT_FOUND,
+    MOVIE_EXISTS,
+    MOVIE_HAS_RATE,
+    MOVIE_NOT_FOUND,
+)
 
 URL_PREFIX = '/api/v1/movies'
 
@@ -89,11 +92,12 @@ def test_create_movie_with_nonexistent_actor(client, actor, other_actor):
     assert data['detail'] == f'{ACTOR_NOT_FOUND}: {{3}}'
 
 
-def test_create_movie_rating(client, movie_without_rating, user):
+def test_create_movie_rating(client, movie_without_rating, user, token):
     payload = {'rating': 1}
     response = client.post(
-        f'{URL_PREFIX}/{movie_without_rating.id}/ratings?current_user_id={user.id}',
+        f'{URL_PREFIX}/{movie_without_rating.id}/ratings',
         json=payload,
+        headers={'Authorization': f'Bearer {token}'},
     )
 
     assert response.status_code == 201
@@ -107,26 +111,22 @@ def test_create_movie_rating(client, movie_without_rating, user):
     assert 'updated_at' in data
 
 
-def test_create_movie_rating_with_nonexistent_user(
-    client, movie_without_rating
-):
+def test_create_movie_rating_without_auth(client, movie_without_rating):
     payload = {'rating': 1}
     response = client.post(
-        f'{URL_PREFIX}/{movie_without_rating.id}/ratings?current_user_id=1',
+        f'{URL_PREFIX}/{movie_without_rating.id}/ratings',
         json=payload,
     )
 
-    assert response.status_code == 404
-
-    data = response.json()
-
-    assert data['detail'] == USER_NOT_FOUND
+    assert response.status_code == 401
 
 
-def test_create_movie_rating_with_nonexistent_movie(client, user):
+def test_create_movie_rating_with_nonexistent_movie(client, user, token):
     payload = {'rating': 1}
     response = client.post(
-        f'{URL_PREFIX}/1/ratings?current_user_id={user.id}', json=payload
+        f'{URL_PREFIX}/999/ratings',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
     )
 
     assert response.status_code == 404
@@ -136,13 +136,13 @@ def test_create_movie_rating_with_nonexistent_movie(client, user):
     assert data['detail'] == MOVIE_NOT_FOUND
 
 
-def test_create_movie_rating_with_movie_rated(client, movie_rated):
+def test_create_movie_rating_with_movie_rated(client, movie_rated, token):
     payload = {'rating': 1}
-    url = (
-        f'{URL_PREFIX}/{movie_rated.movie_id}'
-        f'/ratings?current_user_id={movie_rated.user_id}'
+    response = client.post(
+        f'{URL_PREFIX}/{movie_rated.movie_id}/ratings',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
     )
-    response = client.post(url, json=payload)
 
     assert response.status_code == 409
 
@@ -151,13 +151,13 @@ def test_create_movie_rating_with_movie_rated(client, movie_rated):
     assert data['detail'] == MOVIE_HAS_RATE
 
 
-def test_update_movie_rating(client, movie_rated):
+def test_update_movie_rating(client, movie_rated, token):
     payload = {'rating': 2}
-    url = (
-        f'{URL_PREFIX}/{movie_rated.movie_id}'
-        f'/ratings?current_user_id={movie_rated.user_id}'
+    response = client.put(
+        f'{URL_PREFIX}/{movie_rated.movie_id}/ratings',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
     )
-    response = client.put(url, json=payload)
 
     assert response.status_code == 200
 
@@ -168,25 +168,22 @@ def test_update_movie_rating(client, movie_rated):
     assert 'updated_at' in data
 
 
-def test_update_movie_rating_witout_user(client, movie_rated):
+def test_update_movie_rating_without_auth(client, movie_rated):
     payload = {'rating': 2}
     response = client.put(
-        f'{URL_PREFIX}/{movie_rated.movie_id}/ratings?current_user_id=2',
+        f'{URL_PREFIX}/{movie_rated.movie_id}/ratings',
         json=payload,
     )
 
-    assert response.status_code == 404
-
-    data = response.json()
-
-    assert data['detail'] == USER_NOT_FOUND
+    assert response.status_code == 401
 
 
-def test_update_movie_rating_witout_movie(client, movie_rated):
+def test_update_movie_rating_witout_movie(client, movie_rated, token):
     payload = {'rating': 2}
     response = client.put(
-        f'{URL_PREFIX}/2/ratings?current_user_id={movie_rated.user_id}',
+        f'{URL_PREFIX}/999/ratings',
         json=payload,
+        headers={'Authorization': f'Bearer {token}'},
     )
 
     assert response.status_code == 404

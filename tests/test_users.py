@@ -1,4 +1,4 @@
-from src.services.users import EMAIL_EXISTS, USER_NOT_FOUND
+from src.core.constants import EMAIL_EXISTS, FORBIDDEN, USER_NOT_FOUND
 
 URL_PREFIX = '/api/v1/users'
 
@@ -37,17 +37,23 @@ def test_create_user_duplicate_email(client, user):
     assert data['detail'] == EMAIL_EXISTS
 
 
-def test_delete_user(client, user):
-    response = client.delete(f'{URL_PREFIX}/{user.id}')
+def test_delete_user(client, user, token):
+    response = client.delete(
+        f'{URL_PREFIX}/{user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
     assert response.status_code == 204
 
 
-def test_delete_user_that_not_exists(client):
-    response = client.delete(f'{URL_PREFIX}/1')
-    assert response.status_code == 404
+def test_delete_user_forbidden(client, user, other_user, token):
+    response = client.delete(
+        f'{URL_PREFIX}/{other_user.id}',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+    assert response.status_code == 403
 
     data = response.json()
-    assert data['detail'] == USER_NOT_FOUND
+    assert data['detail'] == FORBIDDEN
 
 
 def test_get_user(client, user):
@@ -122,9 +128,13 @@ def test_list_users_with_filter(client, user, other_user):
     assert data['offset'] == 0
 
 
-def test_update_user_name(client, user):
+def test_update_user_name(client, user, token):
     payload = {'name': 'test_update_user'}
-    response = client.put(f'{URL_PREFIX}/{user.id}', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == 200
 
@@ -139,9 +149,13 @@ def test_update_user_name(client, user):
     assert 'updated_at' in data
 
 
-def test_update_user_email(client, user):
+def test_update_user_email(client, user, token):
     payload = {'email': 'new_email@email.com'}
-    response = client.put(f'{URL_PREFIX}/{user.id}', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == 200
 
@@ -156,9 +170,13 @@ def test_update_user_email(client, user):
     assert 'updated_at' in data
 
 
-def test_update_user_age(client, user):
+def test_update_user_age(client, user, token):
     payload = {'age': 30}
-    response = client.put(f'{URL_PREFIX}/{user.id}', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == 200
 
@@ -173,9 +191,13 @@ def test_update_user_age(client, user):
     assert 'updated_at' in data
 
 
-def test_update_user_password(client, user):
+def test_update_user_password(client, user, token):
     payload = {'password': 'NewPass456@'}  # NOSONAR
-    response = client.put(f'{URL_PREFIX}/{user.id}', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == 200
 
@@ -190,9 +212,13 @@ def test_update_user_password(client, user):
     assert 'updated_at' in data
 
 
-def test_update_user_email_exists(client, user, other_user):
+def test_update_user_email_exists(client, user, other_user, token):
     payload = {'email': other_user.email}
-    response = client.put(f'{URL_PREFIX}/{user.id}', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
     assert response.status_code == 409
     data = response.json()
@@ -200,11 +226,15 @@ def test_update_user_email_exists(client, user, other_user):
     assert data['detail'] == EMAIL_EXISTS
 
 
-def test_update_user_that_not_exists(client):
+def test_update_user_forbidden(client, user, other_user, token):
     payload = {'name': 'ghost'}
-    response = client.put(f'{URL_PREFIX}/999', json=payload)
+    response = client.put(
+        f'{URL_PREFIX}/{other_user.id}',
+        json=payload,
+        headers={'Authorization': f'Bearer {token}'},
+    )
 
-    assert response.status_code == 404
+    assert response.status_code == 403
 
     data = response.json()
-    assert data['detail'] == USER_NOT_FOUND
+    assert data['detail'] == FORBIDDEN
