@@ -1,0 +1,51 @@
+# Version control
+.git/
+.gitignore
+
+# Virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Tool caches
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# Test & coverage
+tests/
+htmlcov/
+.coverage
+.coverage.*
+
+# Documentation
+docs/
+site/
+mkdocs.yml
+*.md
+LICENSE
+
+# Editor / IDE
+.vscode/
+.claude/
+.pre-commit-config.yaml
+
+# Secrets / env
+.env
+*.env.*
+
+# Databases
+*.sqlite3
+*.db
+
+# Migrations
+migrations/
+alembic.ini
+
+# Logs
+*.log
