@@ -9,6 +9,7 @@ services:
       DB_ADDRESS: postgres
       DB_PORT: ${DB_PORT}
       JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      OTLP_ENDPOINT: http://otel-collector:4317
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
       interval: 30s
@@ -39,5 +40,80 @@ services:
       retries: 5
       start_period: 10s
 
+  mimir:
+    image: grafana/mimir:3.0.6
+    restart: unless-stopped
+    volumes:
+      - ./observability/mimir.yaml:/etc/mimir.yaml
+      - mimir_data:/data/mimir
+    command: ["--config.file=/etc/mimir.yaml"]
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "9009:9009"
+
+  tempo:
+    image: grafana/tempo
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./observability/tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/data/tempo
+    command: ["-config.file=/etc/tempo.yaml"]
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "3200:3200"
+
+  loki:
+    image: grafana/loki
+    restart: unless-stopped
+    user: root
+    volumes:
+      - ./observability/loki.yaml:/etc/loki.yaml
+      - loki_data:/data/loki
+    command: ["-config.file=/etc/loki.yaml"]
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "3100:3100"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    restart: unless-stopped
+    volumes:
+      - ./observability/otel-collector.yaml:/etc/otel-collector.yaml
+    command: ["--config=/etc/otel-collector.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on:
+      - mimir
+      - tempo
+      - loki
+
+  grafana:
+    image: grafana/grafana:main
+    restart: unless-stopped
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    volumes:
+      - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml
+      - grafana_data:/var/lib/grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mimir
+      - tempo
+      - loki
+
 volumes:
   postgres_data:
+  mimir_data:
+  tempo_data:
+  loki_data:
+  grafana_data:
