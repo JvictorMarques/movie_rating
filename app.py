@@ -1,8 +1,12 @@
 from fastapi import FastAPI, status
 
+from src.core.database import engine
+from src.core.telemetry import setup_telemetry
 from src.routers import actors, auth, movies, users
 
 app = FastAPI()
+
+setup_telemetry(app, engine)
 
 app.include_router(prefix='/api/v1/auth', tags=['auth'], router=auth.router)
 
