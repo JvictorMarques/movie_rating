@@ -6,6 +6,19 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
+  hostmetrics:
+    root_path: /hostfs
+    collection_interval: 30s
+    scrapers:
+      cpu:
+      memory:
+      disk:
+      network:
+      filesystem:
+        exclude_mount_points:
+          mount_points: [/dev, /proc, /sys, /run, /hostfs/proc, /hostfs/sys]
+          match_type: strict
+
 processors:
   batch:
 
@@ -28,7 +41,7 @@ exporters:
 service:
   pipelines:
     metrics:
-      receivers: [otlp]
+      receivers: [otlp, hostmetrics]
       processors: [batch]
       exporters: [prometheusremotewrite/mimir]
 
