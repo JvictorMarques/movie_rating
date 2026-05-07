@@ -23,7 +23,11 @@ from opentelemetry.sdk._logs.export import (  # noqa: PLC2701
     BatchLogRecordProcessor,
 )
 from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics._internal.aggregation import (  # noqa: PLC2701
+    ExplicitBucketHistogramAggregation,
+)
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
+from opentelemetry.sdk.metrics.view import View
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -56,8 +60,34 @@ def setup_telemetry(app: FastAPI, engine: AsyncEngine) -> None:
         endpoint=settings.OTLP_ENDPOINT, insecure=True
     )
     metric_reader = PeriodicExportingMetricReader(metric_exporter)
+
+    _http_boundaries = [
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        2.5,
+        5.0,
+        7.5,
+        10.0,
+    ]
+    http_duration_view = View(
+        instrument_name='http_request_duration',
+        aggregation=ExplicitBucketHistogramAggregation(_http_boundaries),
+    )
+
     metrics.set_meter_provider(
-        MeterProvider(resource=resource, metric_readers=[metric_reader])
+        MeterProvider(
+            resource=resource,
+            metric_readers=[metric_reader],
+            views=[http_duration_view],
+        )
     )
 
     trace_provider = TracerProvider(resource=resource)
@@ -79,12 +109,11 @@ def setup_telemetry(app: FastAPI, engine: AsyncEngine) -> None:
     otel_handler = LoggingHandler(
         level=logging.INFO, logger_provider=logger_provider
     )
-    stream_handler = logging.StreamHandler()
     logging.basicConfig(
         level=logging.INFO,
         format=''
         '%(asctime)s - %(name)s - %(process)d - %(levelname)s - %(message)s',
-        handlers=[otel_handler, stream_handler],
+        handlers=[otel_handler],
     )
 
     FastAPIInstrumentor.instrument_app(app)
