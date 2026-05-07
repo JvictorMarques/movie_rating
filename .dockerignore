@@ -47,5 +47,11 @@ LICENSE
 migrations/
 alembic.ini
 
+# Scripts
+scripts/
+
+# Observability
+observability/
+
 # Logs
 *.log
