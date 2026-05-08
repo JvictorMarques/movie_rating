@@ -54,7 +54,7 @@
                                             "spec": {
                                                 "direction": "backward",
                                                 "editorMode": "builder",
-                                                "expr": "{service_name=\"movie-rating\"} |= `ERROR`",
+                                                "expr": "{service_name=\"movie-rating\"} | severity_text=\"ERROR\"",
                                                 "queryType": "range"
                                             },
                                             "labels": {
@@ -118,7 +118,7 @@
                                             "spec": {
                                                 "direction": "backward",
                                                 "editorMode": "builder",
-                                                "expr": "{service_name=\"movie-rating\"} |= `WARNING`",
+                                                "expr": "{service_name=\"movie-rating\"} | severity_text=\"WARN\"",
                                                 "queryType": "range"
                                             },
                                             "labels": {
@@ -182,7 +182,7 @@
                                             "spec": {
                                                 "direction": "backward",
                                                 "editorMode": "builder",
-                                                "expr": "{service_name=\"movie-rating\"} |= `INFO` != `uvicorn`",
+                                                "expr": "{service_name=\"movie-rating\"} | severity_text=\"INFO\" | scope_name!~\"uvicorn.*\"",
                                                 "queryType": "range"
                                             },
                                             "labels": {
