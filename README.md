@@ -35,6 +35,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 | Configuration | [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) |
 | Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
 | Container | Docker + Docker Compose |
+| Observability | OpenTelemetry SDK, Grafana, Mimir, Tempo, Loki |
 | Package manager | [uv](https://docs.astral.sh/uv/) |
 | Linter / Formatter | [Ruff](https://docs.astral.sh/ruff/) |
 
@@ -65,65 +66,99 @@ uv sync
 
 ### 3. Configure environment variables
 
-Create a `.env` file in the project root:
+Copy `.env.example` to `.env` and fill in the values:
+
+```bash
+cp .env.example .env
+```
 
 ```env
+ENVIRONMENT=development
+
 DB_USER=postgres
 DB_PASSWORD=postgres
 DB_DATABASE=movie_rating
-DB_ADRESS=localhost
+DB_ADDRESS=localhost
 DB_PORT=5432
+
 JWT_SECRET_KEY=your-secret-key
 JWT_ALGORITHM=HS256
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES=15
+
+# Optional — omit or leave blank to disable telemetry
+OTLP_ENDPOINT=http://localhost:4317
 ```
 
-### 4. Start the database
+---
 
-```bash
-docker compose up -d
-```
+## Running the application
 
-### 5. Run migrations
+There are two ways to run the application, depending on the scenario. **Run only one at a time** — both bind to the same ports and will conflict if started simultaneously.
 
-```bash
-uv run alembic upgrade head
-```
+### Option 1 — Local development (`task app`)
 
-### 6. Start the development server
+Runs the FastAPI server locally with hot reload. Docker Compose is started automatically to provide PostgreSQL.
 
 ```bash
 uv run task app
 ```
 
-> The `app` task automatically runs lint, format, type checking, and starts Docker Compose before launching the server.
+> The `app` task automatically runs lint, format, type checking, tests, starts the PostgreSQL container, and applies migrations before launching the server.
 
 The API will be available at `http://localhost:8000`. Interactive docs are at `http://localhost:8000/docs`.
 
----
+### Option 2 — Docker container (recommended for production simulation)
 
-## Running with Docker
-
-The `compose.yaml` at the project root spins up a PostgreSQL 16 container with a persistent volume. All environment variables are read from your `.env` file.
+Spins up the entire stack — app, PostgreSQL, Grafana, Mimir, Tempo, Loki, and the OpenTelemetry Collector — all containerized. This is the closest environment to production and the recommended way to validate the full observability pipeline.
 
 ```bash
 docker compose up -d
 ```
 
+> Make sure `uv run task app` is not running before starting this option, as both expose the app on the same port.
+
+All environment variables are read from your `.env` file. Grafana is available at `http://localhost:3000` (no login required).
+
+---
+
+## Observability
+
+The project ships a full OpenTelemetry observability stack:
+
+| Component | Role | Port |
+|---|---|---|
+| OpenTelemetry Collector | Receives traces/metrics/logs from the app; scrapes host metrics | 4317 (gRPC) |
+| Grafana Mimir | Prometheus-compatible remote-write metrics storage | 9009 |
+| Grafana Tempo | Distributed tracing backend | 3200 |
+| Grafana Loki | Log aggregation | 3100 |
+| Grafana | Unified dashboards for all signals | 3000 |
+
+The app exports traces, metrics, and structured logs via OTLP gRPC to the collector. A custom `Middleware` layer records `http_request` (counter) and `http_request_duration` (histogram) per route, method, and status code. Host-level CPU, memory, disk, network, and filesystem metrics are scraped via the `hostmetrics` receiver.
+
+A pre-built Grafana dashboard (`observability/grafana-dashboards/metrics.json`) is automatically provisioned on startup.
+
+### Telemetry environment variable
+
+| Variable | Required | Description |
+|---|---|---|
+| `OTLP_ENDPOINT` | No | gRPC endpoint of the OTel Collector (e.g. `http://localhost:4317`). If not set, telemetry setup is skipped entirely. |
+
 ---
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `DB_USER` | PostgreSQL username |
-| `DB_PASSWORD` | PostgreSQL password |
-| `DB_DATABASE` | Database name |
-| `DB_ADRESS` | Database host address |
-| `DB_PORT` | PostgreSQL port (typically `5432`) |
-| `JWT_SECRET_KEY` | Secret key for signing JWT tokens |
-| `JWT_ALGORITHM` | JWT signing algorithm (default: `HS256`) |
-| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | Token TTL in minutes (default: `15`) |
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `ENVIRONMENT` | No | `development` | Deployment environment label |
+| `DB_USER` | Yes | — | PostgreSQL username |
+| `DB_PASSWORD` | Yes | — | PostgreSQL password |
+| `DB_DATABASE` | Yes | — | Database name |
+| `DB_ADDRESS` | Yes | — | Database host address |
+| `DB_PORT` | Yes | 5432 | PostgreSQL port (typically `5432`) |
+| `JWT_SECRET_KEY` | Yes | — | Secret key for signing JWT tokens |
+| `JWT_ALGORITHM` | No | `HS256` | JWT signing algorithm |
+| `JWT_ACCESS_TOKEN_EXPIRE_MINUTES` | No | `15` | Token TTL in minutes |
+| `OTLP_ENDPOINT` | No | — | OTel Collector gRPC endpoint (e.g. `http://localhost:4317`). If omitted, telemetry is disabled. |
 
 ---
 
@@ -249,15 +284,27 @@ GET /health
 ```
 movie-rating/
 ├── app.py                  # FastAPI application entry point
-├── compose.yaml            # Docker Compose (PostgreSQL)
+├── compose.yaml            # Docker Compose (full observability stack)
 ├── pyproject.toml          # Project metadata, dependencies, tool config
 ├── alembic.ini             # Alembic configuration
 ├── migrations/             # Alembic migration scripts
+├── observability/
+│   ├── otel-collector.yaml               # OTel Collector config (OTLP + hostmetrics)
+│   ├── grafana-datasources.yaml          # Grafana datasource provisioning
+│   ├── grafana-dashboard-provisioning.yaml
+│   └── grafana-dashboards/
+│       └── metrics.json                  # Pre-built HTTP metrics dashboard
+├── scripts/
+│   ├── load_test.py        # End-to-end load test (creates users, movies, ratings)
+│   └── latency_sim.py      # Burst traffic simulator for p99 latency testing
 ├── src/
 │   ├── core/
 │   │   ├── database.py     # Async engine and session factory
 │   │   ├── settings.py     # Environment-based config (pydantic-settings)
 │   │   ├── security.py     # JWT creation/verification, password hashing
+│   │   ├── telemetry.py    # OpenTelemetry SDK setup (traces, metrics, logs)
+│   │   ├── metrics.py      # OTel meter instruments (http_request, http_request_duration)
+│   │   ├── middleware.py   # Starlette middleware that records HTTP metrics
 │   │   └── constants.py    # Shared error message strings
 │   ├── models/
 │   │   ├── base.py         # SQLAlchemy declarative base
@@ -293,6 +340,30 @@ movie-rating/
     ├── test_movies.py
     └── test_actors.py
 ```
+
+---
+
+## Scripts
+
+The `scripts/` directory contains utilities for manual testing and observability validation. They require `httpx` (`uv add httpx` or install it separately) and a running API instance.
+
+### Load test
+
+Exercises the full API lifecycle — creates users, actors, and movies, authenticates each user, submits ratings, queries all resources, and fires intentional 4xx errors to populate error metrics.
+
+```bash
+uv run scripts/load_test.py
+```
+
+### Latency simulation
+
+Sends bursts of requests with variable artificial delay to produce realistic p50/p99 latency distributions in Grafana dashboards.
+
+```bash
+uv run scripts/latency_sim.py
+```
+
+Both scripts target `http://localhost:8080/api/v1` by default.
 
 ---
 
