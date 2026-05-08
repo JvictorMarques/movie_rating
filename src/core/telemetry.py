@@ -50,7 +50,7 @@ def _get_version() -> str:
 
 
 def setup_telemetry(app: FastAPI, engine: AsyncEngine) -> None:
-    resource = Resource({
+    resource = Resource.create({
         SERVICE_NAME: 'movie-rating',
         SERVICE_VERSION: _get_version(),
         'deployment.environment': settings.ENVIRONMENT,
