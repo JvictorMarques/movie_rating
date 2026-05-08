@@ -1,3 +1,4 @@
+import logging
 import time
 import typing
 
@@ -5,6 +6,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from src.core.metrics import http_request, http_request_duration
+
+logger = logging.getLogger(__name__)
 
 
 class Middleware(BaseHTTPMiddleware):
