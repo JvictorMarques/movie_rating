@@ -3,7 +3,10 @@
 ![Python](https://img.shields.io/badge/Python-3.13%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.135%2B-009688?logo=fastapi)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red)
+![Pydantic](https://img.shields.io/badge/Pydantic-2.0-E92063?logo=pydantic&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
 ![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
