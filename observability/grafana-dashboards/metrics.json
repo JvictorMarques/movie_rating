@@ -3,7 +3,7 @@
     "kind": "Dashboard",
     "metadata": {
         "name": "ghjpjc",
-        "generation": 44,
+        "generation": 45,
         "creationTimestamp": "2026-05-06T00:31:50Z",
         "labels": {},
         "annotations": {}
@@ -1097,6 +1097,357 @@
                     }
                 }
             },
+            "panel-20": {
+                "kind": "Panel",
+                "spec": {
+                    "id": 20,
+                    "title": "Active Connections",
+                    "description": "",
+                    "links": [],
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "query": {
+                                            "kind": "DataQuery",
+                                            "group": "prometheus",
+                                            "version": "v0",
+                                            "spec": {
+                                                "expr": "db_client_connections_usage{state=\"used\"}",
+                                                "instant": true
+                                            },
+                                            "labels": {
+                                                "grafana.app/export-label": "prometheus-1"
+                                            }
+                                        },
+                                        "refId": "A",
+                                        "hidden": false
+                                    }
+                                }
+                            ],
+                            "transformations": [],
+                            "queryOptions": {}
+                        }
+                    },
+                    "vizConfig": {
+                        "kind": "VizConfig",
+                        "group": "stat",
+                        "version": "13.1.0-25404736240",
+                        "spec": {
+                            "options": {
+                                "colorMode": "background",
+                                "graphMode": "none",
+                                "justifyMode": "auto",
+                                "orientation": "auto",
+                                "percentChangeColorMode": "standard",
+                                "reduceOptions": {
+                                    "calcs": ["lastNotNull"],
+                                    "fields": "",
+                                    "values": false
+                                },
+                                "showPercentChange": false,
+                                "textMode": "auto",
+                                "wideLayout": true
+                            },
+                            "fieldConfig": {
+                                "defaults": {
+                                    "thresholds": {
+                                        "mode": "absolute",
+                                        "steps": [{"value": 0, "color": "green"}]
+                                    },
+                                    "color": {"mode": "thresholds"},
+                                    "noValue": "0"
+                                },
+                                "overrides": []
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-21": {
+                "kind": "Panel",
+                "spec": {
+                    "id": 21,
+                    "title": "Idle Connections",
+                    "description": "",
+                    "links": [],
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "query": {
+                                            "kind": "DataQuery",
+                                            "group": "prometheus",
+                                            "version": "v0",
+                                            "spec": {
+                                                "expr": "db_client_connections_usage{state=\"idle\"}",
+                                                "instant": true
+                                            },
+                                            "labels": {
+                                                "grafana.app/export-label": "prometheus-1"
+                                            }
+                                        },
+                                        "refId": "A",
+                                        "hidden": false
+                                    }
+                                }
+                            ],
+                            "transformations": [],
+                            "queryOptions": {}
+                        }
+                    },
+                    "vizConfig": {
+                        "kind": "VizConfig",
+                        "group": "stat",
+                        "version": "13.1.0-25404736240",
+                        "spec": {
+                            "options": {
+                                "colorMode": "background",
+                                "graphMode": "none",
+                                "justifyMode": "auto",
+                                "orientation": "auto",
+                                "percentChangeColorMode": "standard",
+                                "reduceOptions": {
+                                    "calcs": ["lastNotNull"],
+                                    "fields": "",
+                                    "values": false
+                                },
+                                "showPercentChange": false,
+                                "textMode": "auto",
+                                "wideLayout": true
+                            },
+                            "fieldConfig": {
+                                "defaults": {
+                                    "thresholds": {
+                                        "mode": "absolute",
+                                        "steps": [{"value": 0, "color": "green"}]
+                                    },
+                                    "color": {"mode": "thresholds"},
+                                    "noValue": "0"
+                                },
+                                "overrides": []
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-24": {
+                "kind": "Panel",
+                "spec": {
+                    "id": 24,
+                    "title": "Pool Utilization %",
+                    "description": "",
+                    "links": [],
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "query": {
+                                            "kind": "DataQuery",
+                                            "group": "prometheus",
+                                            "version": "v0",
+                                            "spec": {
+                                                "expr": "db_client_connections_usage{state=\"used\"} / (db_client_connections_usage{state=\"used\"} + db_client_connections_usage{state=\"idle\"}) * 100",
+                                                "instant": true
+                                            },
+                                            "labels": {
+                                                "grafana.app/export-label": "prometheus-1"
+                                            }
+                                        },
+                                        "refId": "A",
+                                        "hidden": false
+                                    }
+                                }
+                            ],
+                            "transformations": [],
+                            "queryOptions": {}
+                        }
+                    },
+                    "vizConfig": {
+                        "kind": "VizConfig",
+                        "group": "gauge",
+                        "version": "13.1.0-25404736240",
+                        "spec": {
+                            "options": {
+                                "barShape": "flat",
+                                "barWidthFactor": 0.5,
+                                "effects": {
+                                    "barGlow": false,
+                                    "centerGlow": false,
+                                    "gradient": true
+                                },
+                                "endpointMarker": "point",
+                                "minVizHeight": 75,
+                                "minVizWidth": 75,
+                                "orientation": "auto",
+                                "reduceOptions": {
+                                    "calcs": ["lastNotNull"],
+                                    "fields": "",
+                                    "values": false
+                                },
+                                "segmentCount": 1,
+                                "segmentSpacing": 0.3,
+                                "shape": "gauge",
+                                "showThresholdLabels": false,
+                                "showThresholdMarkers": true,
+                                "sizing": "auto",
+                                "sparkline": true,
+                                "textMode": "auto"
+                            },
+                            "fieldConfig": {
+                                "defaults": {
+                                    "unit": "percent",
+                                    "min": 0,
+                                    "max": 100,
+                                    "thresholds": {
+                                        "mode": "absolute",
+                                        "steps": [
+                                            {"value": 0, "color": "green"},
+                                            {"value": 60, "color": "#EAB839"},
+                                            {"value": 70, "color": "dark-yellow"},
+                                            {"value": 80, "color": "red"},
+                                            {"value": 100, "color": "dark-red"}
+                                        ]
+                                    },
+                                    "color": {"mode": "thresholds"}
+                                },
+                                "overrides": []
+                            }
+                        }
+                    }
+                }
+            },
+            "panel-25": {
+                "kind": "Panel",
+                "spec": {
+                    "id": 25,
+                    "title": "Pool Usage",
+                    "description": "",
+                    "links": [],
+                    "data": {
+                        "kind": "QueryGroup",
+                        "spec": {
+                            "queries": [
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "query": {
+                                            "kind": "DataQuery",
+                                            "group": "prometheus",
+                                            "version": "v0",
+                                            "spec": {
+                                                "expr": "db_client_connections_usage{state=\"used\"}",
+                                                "legendFormat": "Used",
+                                                "range": true
+                                            },
+                                            "labels": {
+                                                "grafana.app/export-label": "prometheus-1"
+                                            }
+                                        },
+                                        "refId": "Used",
+                                        "hidden": false
+                                    }
+                                },
+                                {
+                                    "kind": "PanelQuery",
+                                    "spec": {
+                                        "query": {
+                                            "kind": "DataQuery",
+                                            "group": "prometheus",
+                                            "version": "v0",
+                                            "spec": {
+                                                "expr": "db_client_connections_usage{state=\"idle\"}",
+                                                "legendFormat": "Idle",
+                                                "range": true
+                                            },
+                                            "labels": {
+                                                "grafana.app/export-label": "prometheus-1"
+                                            }
+                                        },
+                                        "refId": "Idle",
+                                        "hidden": false
+                                    }
+                                }
+                            ],
+                            "transformations": [],
+                            "queryOptions": {}
+                        }
+                    },
+                    "vizConfig": {
+                        "kind": "VizConfig",
+                        "group": "timeseries",
+                        "version": "13.1.0-25404736240",
+                        "spec": {
+                            "options": {
+                                "annotations": {"clustering": -1, "multiLane": false},
+                                "legend": {
+                                    "calcs": [],
+                                    "displayMode": "list",
+                                    "placement": "bottom",
+                                    "showLegend": true
+                                },
+                                "tooltip": {"hideZeros": false, "mode": "single", "sort": "none"}
+                            },
+                            "fieldConfig": {
+                                "defaults": {
+                                    "thresholds": {
+                                        "mode": "absolute",
+                                        "steps": [
+                                            {"value": 0, "color": "green"},
+                                            {"value": 60, "color": "#EAB839"},
+                                            {"value": 80, "color": "red"}
+                                        ]
+                                    },
+                                    "color": {"mode": "palette-classic"},
+                                    "noValue": "0",
+                                    "custom": {
+                                        "axisBorderShow": false,
+                                        "axisCenteredZero": false,
+                                        "axisColorMode": "text",
+                                        "axisLabel": "",
+                                        "axisPlacement": "auto",
+                                        "barAlignment": 0,
+                                        "barWidthFactor": 0.6,
+                                        "drawStyle": "line",
+                                        "fillOpacity": 20,
+                                        "gradientMode": "none",
+                                        "hideFrom": {"legend": false, "tooltip": false, "viz": false},
+                                        "insertNulls": false,
+                                        "lineInterpolation": "linear",
+                                        "lineWidth": 1,
+                                        "pointSize": 5,
+                                        "scaleDistribution": {"type": "linear"},
+                                        "showPoints": "auto",
+                                        "showValues": false,
+                                        "spanNulls": false,
+                                        "stacking": {"group": "A", "mode": "none"},
+                                        "thresholdsStyle": {"mode": "off"}
+                                    }
+                                },
+                                "overrides": [
+                                    {
+                                        "matcher": {"id": "byName", "options": "Used"},
+                                        "properties": [{"id": "color", "value": {"fixedColor": "red", "mode": "fixed"}}]
+                                    },
+                                    {
+                                        "matcher": {"id": "byName", "options": "Idle"},
+                                        "properties": [{"id": "color", "value": {"fixedColor": "green", "mode": "fixed"}}]
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
             "panel-8": {
                 "kind": "Panel",
                 "spec": {
@@ -1328,6 +1679,65 @@
                                                                         "kind": "ElementReference",
                                                                         "name": "panel-8"
                                                                     }
+                                                                }
+                                                            }
+                                                        ]
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    {
+                        "kind": "TabsLayoutTab",
+                        "spec": {
+                            "title": "Database Pool",
+                            "layout": {
+                                "kind": "RowsLayout",
+                                "spec": {
+                                    "rows": [
+                                        {
+                                            "kind": "RowsLayoutRow",
+                                            "spec": {
+                                                "title": "Connections",
+                                                "collapse": false,
+                                                "layout": {
+                                                    "kind": "GridLayout",
+                                                    "spec": {
+                                                        "items": [
+                                                            {
+                                                                "kind": "GridLayoutItem",
+                                                                "spec": {
+                                                                    "x": 0, "y": 0,
+                                                                    "width": 12, "height": 10,
+                                                                    "element": {"kind": "ElementReference", "name": "panel-20"}
+                                                                }
+                                                            },
+                                                            {
+                                                                "kind": "GridLayoutItem",
+                                                                "spec": {
+                                                                    "x": 12, "y": 0,
+                                                                    "width": 12, "height": 10,
+                                                                    "element": {"kind": "ElementReference", "name": "panel-21"}
+                                                                }
+                                                            },
+                                                            {
+                                                                "kind": "GridLayoutItem",
+                                                                "spec": {
+                                                                    "x": 0, "y": 10,
+                                                                    "width": 8, "height": 9,
+                                                                    "element": {"kind": "ElementReference", "name": "panel-24"}
+                                                                }
+                                                            },
+                                                            {
+                                                                "kind": "GridLayoutItem",
+                                                                "spec": {
+                                                                    "x": 8, "y": 10,
+                                                                    "width": 16, "height": 9,
+                                                                    "element": {"kind": "ElementReference", "name": "panel-25"}
                                                                 }
                                                             }
                                                         ]
