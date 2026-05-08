@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,13 +13,13 @@ class Settings(BaseSettings):
     DB_PASSWORD: str
     DB_DATABASE: str
     DB_ADDRESS: str
-    DB_PORT: int
+    DB_PORT: int = 5432
 
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str = 'HS256'
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
 
-    OTLP_ENDPOINT: str
+    OTLP_ENDPOINT: Optional[str] = None
 
     @property
     def DATABASE_URL(self) -> str:

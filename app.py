@@ -2,12 +2,15 @@ from fastapi import FastAPI, status
 
 from src.core.database import engine
 from src.core.middleware import Middleware
+from src.core.settings import Settings
 from src.core.telemetry import setup_telemetry
 from src.routers import actors, auth, movies, users
 
 app = FastAPI()
+settings = Settings()
 
-setup_telemetry(app, engine)
+if settings.OTLP_ENDPOINT:
+    setup_telemetry(app, engine)
 
 app.add_middleware(Middleware)
 
