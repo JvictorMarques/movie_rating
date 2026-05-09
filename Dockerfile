@@ -1,7 +1,8 @@
 FROM python:3.13-alpine3.23 AS builder
 
-RUN apk add --no-cache build-base cargo rust \
-    && pip install uv --no-cache-dir
+ARG UV_VERSION=0.11.11
+
+RUN pip install uv==${UV_VERSION} --no-cache-dir
 
 WORKDIR /app
 
@@ -13,7 +14,9 @@ COPY . .
 
 FROM python:3.13-alpine3.23 AS runtime
 
-RUN apk add --no-cache curl \
+ARG CURL_VERSION=8.17.0-r1
+
+RUN apk add --no-cache curl=${CURL_VERSION} \
     && addgroup -S app \
     && adduser -S app -G app
 
