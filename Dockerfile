@@ -1,5 +1,6 @@
 FROM python:3.13.13-alpine3.23 AS builder
 
+ENV PATH="/app/.venv/bin:$PATH"
 ARG UV_VERSION=0.11.11
 
 RUN pip install uv==${UV_VERSION} --no-cache-dir
@@ -27,6 +28,9 @@ RUN apk add --no-cache curl=${CURL_VERSION} \
 WORKDIR /app
 
 COPY --from=builder --chown=${USER}:${USER} /app /app
+
+RUN rm alembic.ini \
+    && rm -rf migrations
 
 USER ${USER}
 

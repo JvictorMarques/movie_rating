@@ -44,10 +44,6 @@ LICENSE
 *.sqlite3
 *.db
 
-# Migrations
-migrations/
-alembic.ini
-
 # Scripts
 scripts/
 
