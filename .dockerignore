@@ -34,6 +34,7 @@ LICENSE
 .vscode/
 .claude/
 .pre-commit-config.yaml
+.python-version
 
 # Secrets / env
 .env
@@ -55,3 +56,11 @@ observability/
 
 # Logs
 *.log
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+compose.yml
+compose.yaml

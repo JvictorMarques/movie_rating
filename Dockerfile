@@ -1,4 +1,4 @@
-FROM python:3.13-alpine3.23 AS builder
+FROM python:3.13.13-alpine3.23 AS builder
 
 ARG UV_VERSION=0.11.11
 
@@ -8,11 +8,14 @@ WORKDIR /app
 
 COPY pyproject.toml *.lock ./
 
-RUN uv sync --no-dev --no-install-project --frozen
+RUN uv sync \
+    --no-dev \
+    --no-install-project \
+    --frozen
 
 COPY . .
 
-FROM python:3.13-alpine3.23 AS runtime
+FROM python:3.13.13-alpine3.23 AS runtime
 
 ARG CURL_VERSION=8.17.0-r1
 
