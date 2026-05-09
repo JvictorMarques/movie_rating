@@ -18,16 +18,17 @@ COPY . .
 FROM python:3.13.13-alpine3.23 AS runtime
 
 ARG CURL_VERSION=8.17.0-r1
+ARG USER=app
 
 RUN apk add --no-cache curl=${CURL_VERSION} \
-    && addgroup -S app \
-    && adduser -S app -G app
+    && addgroup -S ${USER} \
+    && adduser -S ${USER} -G ${USER}
 
 WORKDIR /app
 
-COPY --from=builder --chown=app:app /app /app
+COPY --from=builder --chown=${USER}:${USER} /app /app
 
-USER app
+USER ${USER}
 
 ENV PATH="/app/.venv/bin:$PATH"
 
