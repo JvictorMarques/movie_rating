@@ -7,7 +7,7 @@
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
-![Version](https://img.shields.io/badge/version-1.0.0-brightgreen)
+![Version](https://img.shields.io/badge/version-1.1.0-brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
 A REST API for managing and rating movies, built with FastAPI and async SQLAlchemy. Users can register, movies can be created with a cast of actors, and each user can rate any movie on a scale from 0 to 10.
@@ -61,15 +61,16 @@ git clone https://github.com/JvictorMarques/movie-rating.git
 cd movie-rating
 ```
 
-### 2. Install dependencies
+### 2. Enter the application directory and install dependencies
 
 ```bash
+cd movie-rating/app
 uv sync
 ```
 
 ### 3. Configure environment variables
 
-Copy `.env.example` to `.env` and fill in the values:
+Copy `app/.env.example` to `app/.env` and fill in the values:
 
 ```bash
 cp .env.example .env
@@ -100,19 +101,19 @@ There are two ways to run the application, depending on the scenario. **Run only
 
 ### Option 1 — Local development (`task app`)
 
-Runs the FastAPI server locally with hot reload. Docker Compose is started automatically to provide PostgreSQL.
+Runs the FastAPI server locally with hot reload. Docker Compose is started automatically to provide PostgreSQL. Run from inside `app/`.
 
 ```bash
 uv run task app
 ```
 
-> The `app` task automatically runs lint, format, type checking, tests, starts the PostgreSQL container, and applies migrations before launching the server.
+> The `app` task automatically runs lint, format, type checking, tests, starts the PostgreSQL container local `compose.yaml`, and applies migrations before launching the server.
 
 The API will be available at `http://localhost:8000`. Interactive docs are at `http://localhost:8000/docs`.
 
 ### Option 2 — Docker container (recommended for production simulation)
 
-Spins up the entire stack — app, PostgreSQL, Grafana, Mimir, Tempo, Loki, and the OpenTelemetry Collector — all containerized. This is the closest environment to production and the recommended way to validate the full observability pipeline.
+Spins up the entire stack — app, PostgreSQL, Grafana, Mimir, Tempo, Loki, and the OpenTelemetry Collector — all containerized. This is the closest environment to production and the recommended way to validate the full observability pipeline. Run from the **repo root**:
 
 ```bash
 docker compose up -d
@@ -120,7 +121,7 @@ docker compose up -d
 
 > Make sure `uv run task app` is not running before starting this option, as both expose the app on the same port.
 
-All environment variables are read from your `.env` file. Grafana is available at `http://localhost:3000` (no login required).
+All environment variables are read from `app/.env`. Grafana is available at `http://localhost:3000` (no login required).
 
 ---
 
@@ -138,7 +139,9 @@ The project ships a full OpenTelemetry observability stack:
 
 The app exports traces, metrics, and structured logs via OTLP gRPC to the collector. A custom `Middleware` layer records `http_request` (counter) and `http_request_duration` (histogram) per route, method, and status code. Host-level CPU, memory, disk, network, and filesystem metrics are scraped via the `hostmetrics` receiver.
 
-A pre-built Grafana dashboard (`observability/grafana-dashboards/metrics.json`) is automatically provisioned on startup.
+Two pre-built Grafana dashboards are automatically provisioned on startup:
+- `observability/grafana/dashboards/metrics.json` — HTTP request metrics + database connection pool
+- `observability/grafana/dashboards/logs.json` — structured logs with tabs for Errors, Warnings, and Info
 
 ### Telemetry environment variable
 
@@ -152,7 +155,7 @@ A pre-built Grafana dashboard (`observability/grafana-dashboards/metrics.json`) 
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `ENVIRONMENT` | No | `development` | Deployment environment label |
+| `ENVIRONMENT` | No | `development` | Controls log level: `DEBUG` in development, `INFO` otherwise |
 | `DB_USER` | Yes | — | PostgreSQL username |
 | `DB_PASSWORD` | Yes | — | PostgreSQL password |
 | `DB_DATABASE` | Yes | — | Database name |
@@ -286,62 +289,73 @@ GET /health
 
 ```
 movie-rating/
-├── app.py                  # FastAPI application entry point
-├── compose.yaml            # Docker Compose (full observability stack)
-├── pyproject.toml          # Project metadata, dependencies, tool config
-├── alembic.ini             # Alembic configuration
-├── migrations/             # Alembic migration scripts
-├── observability/
-│   ├── otel-collector.yaml               # OTel Collector config (OTLP + hostmetrics)
-│   ├── grafana-datasources.yaml          # Grafana datasource provisioning
-│   ├── grafana-dashboard-provisioning.yaml
-│   └── grafana-dashboards/
-│       └── metrics.json                  # Pre-built HTTP metrics dashboard
-├── scripts/
-│   ├── load_test.py        # End-to-end load test (creates users, movies, ratings)
-│   └── latency_sim.py      # Burst traffic simulator for p99 latency testing
-├── src/
-│   ├── core/
-│   │   ├── database.py     # Async engine and session factory
-│   │   ├── settings.py     # Environment-based config (pydantic-settings)
-│   │   ├── security.py     # JWT creation/verification, password hashing
-│   │   ├── telemetry.py    # OpenTelemetry SDK setup (traces, metrics, logs)
-│   │   ├── metrics.py      # OTel meter instruments (http_request, http_request_duration)
-│   │   ├── middleware.py   # Starlette middleware that records HTTP metrics
-│   │   └── constants.py    # Shared error message strings
-│   ├── models/
-│   │   ├── base.py         # SQLAlchemy declarative base
-│   │   ├── users.py
-│   │   ├── movies.py
-│   │   ├── actors.py
-│   │   ├── users_movies.py # User ↔ Movie with rating
-│   │   └── movies_actors.py
-│   ├── repositories/       # Raw SQLAlchemy queries
-│   │   ├── users.py
-│   │   ├── movies.py
-│   │   └── actors.py
-│   ├── services/           # Business logic, raises HTTPException
-│   │   ├── auth.py         # get_current_user dependency, ownership check
-│   │   ├── users.py
-│   │   ├── movies.py
-│   │   └── actors.py
-│   ├── routers/            # FastAPI route handlers
-│   │   ├── auth.py         # POST /token, POST /refresh_token
-│   │   ├── users.py
-│   │   ├── movies.py
-│   │   └── actors.py
-│   └── schemas/            # Pydantic request/response models
-│       ├── auth.py         # Token, LoginRequest
-│       ├── common.py       # Shared type aliases (Age, Name, Rating)
-│       ├── users.py
-│       ├── movies.py
-│       └── actors.py
-└── tests/
-    ├── conftest.py         # Fixtures (session, client)
-    ├── test_auth.py
-    ├── test_users.py
-    ├── test_movies.py
-    └── test_actors.py
+├── compose.yaml                # Root orchestration — includes app/ and observability/ composes
+├── CHANGELOG.md
+├── .pre-commit-config.yaml
+├── app/                        # FastAPI application
+│   ├── app.py                  # Entry point
+│   ├── compose.yaml            # App + PostgreSQL + migrations services
+│   ├── Dockerfile
+│   ├── pyproject.toml
+│   ├── alembic.ini
+│   ├── migrations/             # Alembic migration scripts
+│   ├── scripts/
+│   │   ├── load_test.py        # End-to-end load test
+│   │   └── latency_sim.py      # Burst traffic / p99 latency simulator
+│   ├── src/
+│   │   ├── core/
+│   │   │   ├── database.py     # Async engine and session factory
+│   │   │   ├── settings.py     # Environment-based config (pydantic-settings)
+│   │   │   ├── security.py     # JWT creation/verification, password hashing
+│   │   │   ├── telemetry.py    # OpenTelemetry SDK setup (traces, metrics, logs)
+│   │   │   ├── metrics.py      # OTel meter instruments (http_request, http_request_duration)
+│   │   │   ├── middleware.py   # Starlette middleware that records HTTP metrics
+│   │   │   └── constants.py    # Shared error message strings
+│   │   ├── models/
+│   │   │   ├── base.py         # SQLAlchemy declarative base
+│   │   │   ├── users.py
+│   │   │   ├── movies.py
+│   │   │   ├── actors.py
+│   │   │   ├── users_movies.py # User ↔ Movie with rating
+│   │   │   └── movies_actors.py
+│   │   ├── repositories/       # Raw SQLAlchemy queries
+│   │   │   ├── users.py
+│   │   │   ├── movies.py
+│   │   │   └── actors.py
+│   │   ├── services/           # Business logic, raises HTTPException; emits structured logs
+│   │   │   ├── auth.py         # get_current_user dependency, ownership check
+│   │   │   ├── users.py
+│   │   │   ├── movies.py
+│   │   │   └── actors.py
+│   │   ├── routers/            # FastAPI route handlers
+│   │   │   ├── auth.py         # POST /token, POST /refresh_token
+│   │   │   ├── users.py
+│   │   │   ├── movies.py
+│   │   │   └── actors.py
+│   │   └── schemas/            # Pydantic request/response models
+│   │       ├── auth.py         # Token, LoginRequest
+│   │       ├── common.py       # Shared type aliases (Age, Name, Rating)
+│   │       ├── users.py
+│   │       ├── movies.py
+│   │       └── actors.py
+│   └── tests/
+│       ├── conftest.py         # Fixtures (session, client)
+│       ├── test_auth.py
+│       ├── test_users.py
+│       ├── test_movies.py
+│       └── test_actors.py
+└── observability/
+    ├── compose.yaml
+    ├── grafana/
+    │   ├── datasources.yaml    # Grafana datasource provisioning
+    │   ├── dashboards.yaml     # Grafana dashboard provisioning pointer
+    │   └── dashboards/
+    │       ├── metrics.json    # HTTP metrics + DB pool dashboard
+    │       └── logs.json       # Structured logs dashboard (Errors/Warnings/Info tabs)
+    ├── loki/loki.yaml
+    ├── mimir/mimir.yaml
+    ├── otel/collector.yaml     # OTLP receiver + hostmetrics scraper
+    └── tempo/tempo.yaml
 ```
 
 ---
@@ -366,17 +380,19 @@ Sends bursts of requests with variable artificial delay to produce realistic p50
 uv run scripts/latency_sim.py
 ```
 
-Both scripts target `http://localhost:8080/api/v1` by default.
+Both scripts target `http://localhost:8000/api/v1` by default and must be run from inside `app/`.
 
 ---
 
 ## Running Tests
 
+From inside `app/`:
+
 ```bash
 uv run task test
 ```
 
-Generates an HTML coverage report at `htmlcov/index.html`.
+Generates an HTML coverage report at `app/htmlcov/index.html`.
 
 ---
 

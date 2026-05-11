@@ -1,0 +1,66 @@
+x-db-env: &db-env
+  DB_USER: ${DB_USER}
+  DB_PASSWORD: ${DB_PASSWORD}
+  DB_DATABASE: ${DB_DATABASE}
+  DB_ADDRESS: postgres
+  DB_PORT: ${DB_PORT}
+
+services:
+  app:
+    build:
+        context: .
+        dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      <<: *db-env
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+
+  migrations:
+    build:
+        context: .
+        dockerfile: Dockerfile
+        target: builder
+    restart: no
+    environment:
+      <<: *db-env
+    command: >
+      sh -c "
+        apk add gcc python3-dev musl-dev linux-headers
+        uv sync --no-install-project --frozen &&
+        uv run alembic upgrade head
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_DATABASE}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_DATABASE}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  postgres_data:
