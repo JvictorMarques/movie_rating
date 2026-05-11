@@ -89,11 +89,6 @@ asyncio_default_fixture_loop_scope = 'function'
 [tool.coverage.run]
 concurrency = ["thread", "greenlet"]
 
-[tool.commitizen]
-version_provider = "uv"
-tag_format = "v$version"
-update_changelog_on_bump = true
-
 [tool.taskipy.tasks]
 lint = 'ruff check'
 lint_fix = 'ruff check --fix'
