@@ -1,3 +1,17 @@
+## v1.2.0 (2026-05-11)
+
+### Refactor
+
+- **repo**: restructure project into mono-repo layout with `app/` and `observability/` as top-level directories
+
+### Improvements
+
+- **settings**: add JWT secret validation on startup and expose settings singleton for reuse across the codebase
+- **compose**: extract dedicated `migrations` service and `db-env` anchor to avoid environment variable duplication
+- **docker**: strip migrations from final image, export venv PATH, pin `uv` and `curl` versions, and parameterize image user
+- **readme**: version badge now reads dynamically from `pyproject.toml`
+- **commitizen**: add `.cz.toml` at repo root for versioning and changelog management from the mono-repo root
+
 ## v1.1.0 (2026-05-08)
 
 ### Feat
