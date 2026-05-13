@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-api
+  namespace: {{ .Chart.Name }}
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-api
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: {{ .Chart.Name }}-api
+        imagePullPolicy: IfNotPresent
+        image: {{ .Chart.Name }}:{{ .Chart.AppVersion }}
+        ports:
+        - containerPort: 8000
+        {{- if eq .Values.environment "local" }}
+        envFrom:
+          - secretRef:
+              name: {{ .Chart.Name }}
+        {{- end }}
+        resources:
+          requests:
+            cpu: {{ .Values.app.resources.requests.cpu }}
+            memory: {{ .Values.app.resources.requests.memory }}
+            ephemeral-storage: {{ index .Values.app.resources.requests "ephemeral-storage" }}
+          limits:
+            cpu: {{ .Values.app.resources.limits.cpu }}
+            memory: {{ .Values.app.resources.limits.memory }}
+            ephemeral-storage: {{ index .Values.app.resources.limits "ephemeral-storage" }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Chart.Name }}-api
+  namespace: {{ .Chart.Name }}
+spec:
+  selector:
+    app: {{ .Chart.Name }}-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Chart.Name }}-ingress
+  namespace: {{ .Chart.Name }}
+spec:
+  ingressClassName: kong
+  rules:
+  - host: {{ .Chart.Name }}.local.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: {{ .Chart.Name }}-api
+            port:
+              number: 8000
