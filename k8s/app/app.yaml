@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: movie-rating
+  namespace: movie-rating
+type: Opaque
+stringData:
+  JWT_SECRET_KEY: jwt-secret-key
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: movie-rating-api
+  namespace: movie-rating
+  labels:
+    app: movie-rating
+spec:
+  selector:
+    matchLabels:
+      app: movie-rating-api
+  template:
+    metadata:
+      labels:
+        app: movie-rating-api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: movie-rating-api
+        imagePullPolicy: IfNotPresent
+        image: movie-rating:v1.0.0
+        ports:
+        - containerPort: 8000
+        env:
+          - name: DB_USER
+            valueFrom:
+              secretKeyRef:
+                name: movie-rating-db
+                key: POSTGRES_USER
+          - name: DB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: movie-rating-db
+                key: POSTGRES_PASSWORD
+          - name: DB_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: movie-rating-db
+                key: POSTGRES_DB
+          - name: DB_ADDRESS
+            value: movie-rating-db
+          - name: DB_PORT
+            value: "5432"
+        envFrom:
+          - secretRef:
+              name: movie-rating
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+            ephemeral-storage: 100Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+            ephemeral-storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-rating-api
+  namespace: movie-rating
+spec:
+  selector:
+    app: movie-rating-api
+  ports:
+  - port: 8000
+    targetPort: 8000
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: myingress
+  namespace: movie-rating
+spec:
+  ingressClassName: kong
+  rules:
+  - host: movie-rating.local.com
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: movie-rating-api
+            port:
+              number: 8000

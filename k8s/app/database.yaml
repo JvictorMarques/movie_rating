@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: movie-rating-db
+  namespace: movie-rating
+type: Opaque
+stringData:
+  POSTGRES_USER: movie-rating
+  POSTGRES_PASSWORD: movie-rating-password
+  POSTGRES_DB: movie-rating
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: movie-rating-db
+  namespace: movie-rating
+spec:
+  selector:
+    matchLabels:
+      app: movie-rating-db
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: movie-rating-db
+    spec:
+      containers:
+      - name: movie-rating-db
+        image: postgres:16
+        ports:
+        - containerPort: 5432
+          name: postgres
+        envFrom:
+        - secretRef:
+            name: movie-rating-db
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: movie-rating-db
+spec:
+  selector:
+    app: movie-rating-db
+  ports:
+  - port: 5432
+    targetPort: 5432
