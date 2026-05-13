@@ -1,0 +1,20 @@
+environment: local
+
+secrets:
+  jwtSecretKey: jwt-secret-key
+  dbUser: movie-rating
+  dbPassword: movie-rating-password
+  dbDatabase: movie-rating
+  dbAddress: movie-rating-db
+  dbPort: 5432
+
+app:
+  resources:
+    requests:
+      cpu: 15m
+      memory: 225M
+      ephemeral-storage: 128Mi
+    limits:
+      cpu: 29m
+      memory: 598M
+      ephemeral-storage: 256Mi
