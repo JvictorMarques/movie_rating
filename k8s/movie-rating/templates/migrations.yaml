@@ -6,7 +6,7 @@ metadata:
   name: {{ .Chart.Name }}-migrations
   namespace: {{ .Release.Namespace }}
   annotations:
-    "helm.sh/hook": pre-upgrade
+    "helm.sh/hook": post-install, pre-upgrade
     "helm.sh/hook-weight": "1"
 spec:
   template:
