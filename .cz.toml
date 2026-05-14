@@ -3,7 +3,7 @@ version_provider = "commitizen"
 version = "1.2.1"
 version_files = [
     "app/pyproject.toml:^version",
-    "k8s/app/movie-rating/Chart.yaml:^appVersion",
+    "k8s/movie-rating/Chart.yaml:^appVersion",
     ]
 tag_format = "v$version"
 update_changelog_on_bump = true
