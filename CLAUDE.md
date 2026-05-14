@@ -9,6 +9,7 @@ The repo is a mono-repo with two top-level directories:
 ```
 movie-rating/
 ├── app/                # FastAPI application (source, tests, migrations, scripts)
+├── k8s/                # Kubernetes manifests (Helm chart + Helmfile)
 ├── observability/      # OTel Collector, Grafana, Mimir, Tempo, Loki configs
 ├── compose.yaml        # Root orchestration — includes app/ and observability/ composes
 ├── CHANGELOG.md
@@ -70,6 +71,56 @@ The app is a FastAPI REST API (`app/app.py`) with routes mounted at `/api/v1/<re
 **Migrations** are managed with Alembic (`app/alembic.ini`).
 
 A `/health` GET endpoint is defined directly in `app/app.py` (not under `/api/v1`).
+
+## Kubernetes
+
+Config files live in `k8s/` — a Helm chart for the app plus a Helmfile that manages all releases.
+
+```
+k8s/
+├── helmfile.yaml.gotmpl          # Helmfile — declares all releases (kong, goldilocks, movie-rating)
+├── kind-config.yaml              # kind cluster config (1 control-plane + 2 workers, ports 80/443)
+├── movie-rating/                 # Helm chart for the app
+│   ├── Chart.yaml                # Chart metadata; postgresql bitnami dependency (condition: local.enabled)
+│   ├── values.yaml               # Default values (resources, image tags, secrets, ingress)
+│   └── templates/
+│       ├── _helpers.tpl          # Named templates: movie-rating.app.env, movie-rating.migrations.env
+│       ├── app.yaml              # Deployment, Service, Ingress
+│       ├── migrations.yaml       # Helm hook Job that runs alembic upgrade head
+│       └── NOTES.txt
+└── values/
+    ├── kong.yaml                 # Kong ingress controller values
+    └── goldilocks.yaml           # Goldilocks VPA recommender values
+```
+
+**Releases managed by Helmfile** (`helmfile -e local sync` from `k8s/`):
+- `kong/kong` — Kong ingress controller (namespace `kong`)
+- `goldilocks/goldilocks` — VPA resource recommender (namespace `goldilocks`); namespace `movie-rating` is labelled `goldilocks.fairwinds.com/enabled=true` via a `presync` hook
+- `movie-rating/movie-rating` — the app chart (namespace `movie-rating`); depends on kong and goldilocks in local env
+
+**Helm chart details:**
+- PostgreSQL is included as a bitnami dependency and only deployed when `local.enabled: true`
+- Env vars are derived from `values.yaml` `secrets:` block via `_helpers.tpl` (camelCase keys → UPPER_SNAKE_CASE)
+- `migrations.yaml` runs as a `pre-upgrade` Helm hook Job; it installs build deps with `apk`, syncs dependencies with `uv`, then runs `alembic upgrade head`
+- The migration Job only runs on `helm upgrade`, not on `helm install` — on first install PostgreSQL is deployed as part of the chart resources and is not yet available when `pre-install` hooks fire
+
+**Local setup (kind):**
+
+```bash
+# Create cluster
+kind create cluster --config k8s/kind-config.yaml
+
+# Load images into kind (must be done before helmfile sync)
+kind load docker-image movie-rating:1.0.0
+kind load docker-image movie-rating-migrations:1.0.0
+
+# Deploy all releases
+helmfile -e local sync -f k8s/helmfile.yaml.gotmpl
+
+# Access the app
+# Add to /etc/hosts: 127.0.0.1 movie-rating.local.com
+curl http://movie-rating.local.com/health
+```
 
 ## Observability
 
