@@ -1,3 +1,9 @@
+## v1.2.1 (2026-05-14)
+
+### Fix
+
+- **migrations**: update helm hook to include post-install
+
 ## v1.2.0 (2026-05-11)
 
 ### Refactor
