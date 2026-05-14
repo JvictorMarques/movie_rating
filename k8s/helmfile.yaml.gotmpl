@@ -1,0 +1,51 @@
+repositories:
+  - name: bitnami
+    url: https://charts.bitnami.com/bitnami
+  - name: kong
+    url: https://charts.konghq.com
+  - name: fairwinds-stable
+    url: https://charts.fairwinds.com/stable
+
+environments:
+  local:
+  production:
+
+---
+
+releases:
+  - name: kong
+    chart: kong/ingress
+    version: "0.21.0"
+    namespace: kong
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    values:
+      - values/kong.yaml
+
+  - name: goldilocks
+    chart: fairwinds-stable/goldilocks
+    version: "10.3.0"
+    namespace: goldilocks
+    createNamespace: true
+    installed: {{ eq .Environment.Name "local" }}
+    values:
+      - values/goldilocks.yaml
+
+  - name: movie-rating
+    chart: ./movie-rating
+    namespace: movie-rating
+    createNamespace: true
+    hooks:
+      - events: ["presync"]
+        command: kubectl
+        args:
+          - label
+          - namespace
+          - movie-rating
+          - "goldilocks.fairwinds.com/enabled=true"
+          - --overwrite
+    {{- if eq .Environment.Name "local" }}
+    needs:
+      - kong/kong
+      - goldilocks/goldilocks
+    {{- end }}
