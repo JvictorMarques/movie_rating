@@ -36,7 +36,7 @@ releases:
     namespace: movie-rating
     createNamespace: true
     hooks:
-      - events: ["presync"]
+      - events: ["postsync"]
         command: kubectl
         args:
           - label

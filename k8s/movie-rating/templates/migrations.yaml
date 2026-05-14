@@ -26,12 +26,5 @@ spec:
             cpu: {{ .Values.migrations.resources.limits.cpu }}
             memory: {{ .Values.migrations.resources.limits.memory }}
             ephemeral-storage: {{ index .Values.migrations.resources.limits "ephemeral-storage" }}
-        command:
-        - /bin/sh
-        - -c
-        - |
-          apk add gcc python3-dev musl-dev linux-headers
-          uv sync --no-install-project --frozen &&
-          uv run alembic upgrade head
       restartPolicy: Never
 {{- end }}
