@@ -1,0 +1,16 @@
+gateway:
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+  tolerations:
+    - key: node-role.kubernetes.io/master
+      operator: Equal
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Equal
+      effect: NoSchedule
+  proxy:
+    type: NodePort
+    http:
+      hostPort: 80
+    tls:
+      hostPort: 443
