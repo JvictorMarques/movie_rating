@@ -1,0 +1,24 @@
+{{- if .Values.local.enabled }}
+1. Add the following entry to your /etc/hosts file so the Ingress host resolves locally:
+
+   127.0.0.1  {{ .Values.app.ingress.host }}
+
+   On Linux/macOS:
+     echo "127.0.0.1  {{ .Values.app.ingress.host }}" | sudo tee -a /etc/hosts
+
+   On Windows (PowerShell as Administrator):
+     Add-Content -Path "C:\Windows\System32\drivers\etc\hosts" -Value "127.0.0.1  {{ .Values.app.ingress.host }}"
+
+2. The application may take a few moments to become ready — the migration Job
+   must complete before the API starts serving requests. You can follow its
+   progress with:
+
+     kubectl get jobs -n {{ .Release.Namespace }} -w
+
+3. The API will be available at:
+
+   http://{{ .Values.app.ingress.host }}/api/v1/
+
+   Health check:
+   http://{{ .Values.app.ingress.host }}/health
+{{- end }}
