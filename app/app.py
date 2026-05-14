@@ -33,7 +33,7 @@ app.include_router(
 
 @app.get('/health', status_code=status.HTTP_200_OK)
 async def health_check():
-    return {'message': 'Hello World'}
+    return {'message': 'healthy'}
 
 
 @app.exception_handler(Exception)
