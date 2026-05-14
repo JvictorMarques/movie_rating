@@ -39,6 +39,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 | Migrations | [Alembic](https://alembic.sqlalchemy.org/) |
 | Container | Docker + Docker Compose |
 | Observability | OpenTelemetry SDK, Grafana, Mimir, Tempo, Loki |
+| Kubernetes | [kind](https://kind.sigs.k8s.io/), [Helm](https://helm.sh/), [Helmfile](https://helmfile.readthedocs.io/), Kong, Goldilocks |
 | Package manager | [uv](https://docs.astral.sh/uv/) |
 | Linter / Formatter | [Ruff](https://docs.astral.sh/ruff/) |
 
@@ -49,6 +50,12 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 - Python 3.13+
 - [uv](https://docs.astral.sh/uv/) — package and project manager
 - Docker and Docker Compose — to run PostgreSQL
+
+**For Kubernetes (local):**
+- [kind](https://kind.sigs.k8s.io/) — local Kubernetes clusters via Docker
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Helmfile](https://helmfile.readthedocs.io/en/latest/#installation)
 
 ---
 
@@ -97,7 +104,7 @@ OTLP_ENDPOINT=http://localhost:4317
 
 ## Running the application
 
-There are two ways to run the application, depending on the scenario. **Run only one at a time** — both bind to the same ports and will conflict if started simultaneously.
+There are three ways to run the application, depending on the scenario. **Run only one at a time** — options 1 and 2 bind to the same ports and will conflict if started simultaneously.
 
 ### Option 1 — Local development (`task app`)
 
@@ -111,9 +118,9 @@ uv run task app
 
 The API will be available at `http://localhost:8000`. Interactive docs are at `http://localhost:8000/docs`.
 
-### Option 2 — Docker container (recommended for production simulation)
+### Option 2 — Docker container
 
-Spins up the entire stack — app, PostgreSQL, Grafana, Mimir, Tempo, Loki, and the OpenTelemetry Collector — all containerized. This is the closest environment to production and the recommended way to validate the full observability pipeline. Run from the **repo root**:
+Spins up the entire stack — app, PostgreSQL, Grafana, Mimir, Tempo, Loki, and the OpenTelemetry Collector — all containerized. Run from the **repo root**:
 
 ```bash
 docker compose up -d
@@ -122,6 +129,33 @@ docker compose up -d
 > Make sure `uv run task app` is not running before starting this option, as both expose the app on the same port.
 
 All environment variables are read from `app/.env`. Grafana is available at `http://localhost:3000` (no login required).
+
+### Option 3 — Kubernetes (kind) (recommended for production simulation)
+
+Deploys the full application on a local [kind](https://kind.sigs.k8s.io/) cluster using Helm and Helmfile. Requires the prerequisites listed in the [Kubernetes section](#kubernetes-local) below.
+
+> Before deploying, update `app.image.tag` and `migrations.image.tag` in `k8s/movie-rating/values.yaml` to match the image tag you will build.
+
+```bash
+# Create the cluster
+kind create cluster --config k8s/kind-config.yaml
+
+# Build and load images — replace <tag> with the value set in values.yaml
+docker build -t movie-rating:<tag> app/
+docker build --target builder -t movie-rating-migrations:<tag> app/
+kind load docker-image movie-rating:<tag>
+kind load docker-image movie-rating-migrations:<tag>
+
+# Deploy all releases
+helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
+```
+
+Add the ingress host to your local DNS resolver and access the API:
+
+```bash
+echo "127.0.0.1  movie-rating.local.com" | sudo tee -a /etc/hosts
+curl http://movie-rating.local.com/health
+```
 
 ---
 
