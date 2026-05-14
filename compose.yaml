@@ -1,6 +1,6 @@
 include:
   - ./app/compose.yaml
-  - ./observability/compose.yaml
+  - ./docker/compose.yaml
 
 services:
   app:
