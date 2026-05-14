@@ -10,8 +10,8 @@ The repo is a mono-repo with two top-level directories:
 movie-rating/
 ├── app/                # FastAPI application (source, tests, migrations, scripts)
 ├── k8s/                # Kubernetes manifests (Helm chart + Helmfile)
-├── observability/      # OTel Collector, Grafana, Mimir, Tempo, Loki configs
-├── compose.yaml        # Root orchestration — includes app/ and observability/ composes
+├── docker/             # OTel Collector, Grafana, Mimir, Tempo, Loki configs
+├── compose.yaml        # Root orchestration — includes app/ and docker/ composes
 ├── CHANGELOG.md
 └── .pre-commit-config.yaml
 ```
@@ -124,10 +124,10 @@ curl http://movie-rating.local.com/health
 
 ## Observability
 
-Config files live in `observability/` with one subdirectory per component:
+Config files live in `docker/` with one subdirectory per component:
 
 ```
-observability/
+docker/
 ├── compose.yaml
 ├── grafana/
 │   ├── datasources.yaml       # Grafana datasource provisioning

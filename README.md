@@ -140,8 +140,8 @@ The project ships a full OpenTelemetry observability stack:
 The app exports traces, metrics, and structured logs via OTLP gRPC to the collector. A custom `Middleware` layer records `http_request` (counter) and `http_request_duration` (histogram) per route, method, and status code. Host-level CPU, memory, disk, network, and filesystem metrics are scraped via the `hostmetrics` receiver.
 
 Two pre-built Grafana dashboards are automatically provisioned on startup:
-- `observability/grafana/dashboards/metrics.json` — HTTP request metrics + database connection pool
-- `observability/grafana/dashboards/logs.json` — structured logs with tabs for Errors, Warnings, and Info
+- `docker/grafana/dashboards/metrics.json` — HTTP request metrics + database connection pool
+- `docker/grafana/dashboards/logs.json` — structured logs with tabs for Errors, Warnings, and Info
 
 ### Telemetry environment variable
 
@@ -289,7 +289,7 @@ GET /health
 
 ```
 movie-rating/
-├── compose.yaml                # Root orchestration — includes app/ and observability/ composes
+├── compose.yaml                # Root orchestration — includes app/ and docker/ composes
 ├── CHANGELOG.md
 ├── .pre-commit-config.yaml
 ├── app/                        # FastAPI application
@@ -344,7 +344,7 @@ movie-rating/
 │       ├── test_users.py
 │       ├── test_movies.py
 │       └── test_actors.py
-└── observability/
+└── docker/
     ├── compose.yaml
     ├── grafana/
     │   ├── datasources.yaml    # Grafana datasource provisioning
