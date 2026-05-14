@@ -4,7 +4,7 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.135%2B-009688?logo=fastapi)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-2.0-E92063?logo=pydantic&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.3-336791?logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-336791?logo=postgresql)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
@@ -33,7 +33,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 |---|---|
 | Framework | [FastAPI](https://fastapi.tiangolo.com/) |
 | ORM | [SQLAlchemy 2.0](https://docs.sqlalchemy.org/) (async) |
-| Database | PostgreSQL 18.3 |
+| Database | PostgreSQL 17 |
 | Validation | [Pydantic v2](https://docs.pydantic.dev/) |
 | Authentication | [PyJWT](https://pyjwt.readthedocs.io/) (JWT Bearer tokens) |
 | Password hashing | [pwdlib](https://github.com/frankie567/pwdlib) (Argon2) |
@@ -136,25 +136,30 @@ All environment variables are read from `app/.env`. Grafana is available at `htt
 
 Deploys the full application on a local [kind](https://kind.sigs.k8s.io/) cluster using Helm and Helmfile. Requires the prerequisites listed in the [Kubernetes section](#kubernetes-local) below.
 
-> Before deploying, update `app.image.tag` and `migrations.image.tag` in `k8s/movie-rating/values.yaml` to match the image tag you will build.
+**Automated (recommended):**
+
+```bash
+cd k8s/
+bash startup-cluster.sh
+```
+
+The script creates the cluster, builds and loads both images, deploys all releases, configures `/etc/hosts`, and waits for a healthy response — all in one step.
+
+**Manual:**
 
 ```bash
 # Create the cluster
 kind create cluster --config k8s/kind-config.yaml
 
-# Build and load images — replace <tag> with the value set in values.yaml
-docker build -t movie-rating:<tag> app/
-docker build --target builder -t movie-rating-migrations:<tag> app/
-kind load docker-image movie-rating:<tag>
-kind load docker-image movie-rating-migrations:<tag>
+# Build and load images
+docker build --target runtime -t movie-rating:latest app/
+docker build --target migrations -t movie-rating-migrations:latest app/
+kind load docker-image movie-rating:latest
+kind load docker-image movie-rating-migrations:latest
 
 # Deploy all releases
 helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
-```
 
-Add the ingress host to your local DNS resolver and access the API:
-
-```bash
 echo "127.0.0.1  movie-rating.local.com" | sudo tee -a /etc/hosts
 curl http://movie-rating.local.com/health
 ```
@@ -404,11 +409,12 @@ The `k8s/` directory contains everything needed to run the application on a loca
 k8s/
 ├── kind-config.yaml              # kind cluster definition (1 control-plane + 2 workers, ports 80/443 mapped to host)
 ├── helmfile.yaml.gotmpl          # Helmfile with kong, goldilocks, and movie-rating releases
+├── startup-cluster.sh            # Automated script — creates cluster, builds/loads images, deploys, configures /etc/hosts
 ├── values/
 │   ├── kong.yaml                 # Values for Kong Ingress Controller
 │   └── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
 └── movie-rating/                 # Application Helm chart
-    ├── Chart.yaml                # Chart metadata; depends on Bitnami PostgreSQL 18.3.x
+    ├── Chart.yaml                # Chart metadata; depends on Bitnami PostgreSQL chart 16.7.27 (PostgreSQL 17)
     ├── values.yaml               # Default values (local mode, image tags, resource requests/limits, ingress host)
     └── templates/
         ├── app.yaml              # Deployment + Service + Ingress
@@ -422,6 +428,19 @@ k8s/
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Helm](https://helm.sh/docs/intro/install/)
 - [Helmfile](https://helmfile.readthedocs.io/en/latest/#installation)
+
+### Automated setup
+
+The `k8s/startup-cluster.sh` script handles the entire local setup in one command — it creates the cluster (if not already running), builds and loads both Docker images, deploys all releases via Helmfile, configures `/etc/hosts`, and waits until the application is healthy.
+
+```bash
+cd k8s/
+bash startup-cluster.sh
+```
+
+The script uses `latest` as the image tag by default. To use a custom tag, edit `TAG_VERSION` at the top of the file.
+
+If you prefer to run the steps manually, follow sections 1–5 below.
 
 ### 1. Create the kind cluster
 

@@ -80,6 +80,7 @@ Config files live in `k8s/` — a Helm chart for the app plus a Helmfile that ma
 k8s/
 ├── helmfile.yaml.gotmpl          # Helmfile — declares all releases (kong, goldilocks, movie-rating)
 ├── kind-config.yaml              # kind cluster config (1 control-plane + 2 workers, ports 80/443)
+├── startup-cluster.sh            # Automated setup: creates cluster, builds/loads images, deploys, waits for health
 ├── movie-rating/                 # Helm chart for the app
 │   ├── Chart.yaml                # Chart metadata; postgresql bitnami dependency (condition: local.enabled)
 │   ├── values.yaml               # Default values (resources, image tags, secrets, ingress)
@@ -95,13 +96,13 @@ k8s/
 
 **Releases managed by Helmfile** (`helmfile -e local sync` from `k8s/`):
 - `kong/kong` — Kong ingress controller (namespace `kong`)
-- `goldilocks/goldilocks` — VPA resource recommender (namespace `goldilocks`); namespace `movie-rating` is labelled `goldilocks.fairwinds.com/enabled=true` via a `presync` hook
+- `goldilocks/goldilocks` — VPA resource recommender (namespace `goldilocks`); namespace `movie-rating` is labelled `goldilocks.fairwinds.com/enabled=true` via a `postsync` hook
 - `movie-rating/movie-rating` — the app chart (namespace `movie-rating`); depends on kong and goldilocks in local env
 
 **Helm chart details:**
 - PostgreSQL is included as a bitnami dependency and only deployed when `local.enabled: true`
 - Env vars are derived from `values.yaml` `secrets:` block via `_helpers.tpl` (camelCase keys → UPPER_SNAKE_CASE)
-- `migrations.yaml` runs as a `pre-upgrade` Helm hook Job; it installs build deps with `apk`, syncs dependencies with `uv`, then runs `alembic upgrade head`
+- `migrations.yaml` runs as a `pre-upgrade` Helm hook Job; it uses the `movie-rating-migrations` image whose ENTRYPOINT runs `alembic upgrade head` directly (build deps and `uv sync` are baked into the image at build time)
 - The migration Job only runs on `helm upgrade`, not on `helm install` — on first install PostgreSQL is deployed as part of the chart resources and is not yet available when `pre-install` hooks fire
 
 **Local setup (kind):**
