@@ -360,6 +360,101 @@ movie-rating/
 
 ---
 
+## Kubernetes (local)
+
+The `k8s/` directory contains everything needed to run the application on a local [kind](https://kind.sigs.k8s.io/) cluster using [Helm](https://helm.sh/) and [Helmfile](https://helmfile.readthedocs.io/).
+
+```
+k8s/
+├── kind-config.yaml              # kind cluster definition (1 control-plane + 2 workers, ports 80/443 mapped to host)
+├── helmfile.yaml.gotmpl          # Helmfile with kong, goldilocks, and movie-rating releases
+├── values/
+│   ├── kong.yaml                 # Values for Kong Ingress Controller
+│   └── goldilocks.yaml           # Values for Goldilocks (VPA recommendations)
+└── movie-rating/                 # Application Helm chart
+    ├── Chart.yaml                # Chart metadata; depends on Bitnami PostgreSQL 18.3.x
+    ├── values.yaml               # Default values (local mode, image tags, resource requests/limits, ingress host)
+    └── templates/
+        ├── app.yaml              # Deployment + Service + Ingress
+        ├── migrations.yaml       # pre-upgrade Job that runs Alembic migrations (local only)
+        └── _helpers.tpl          # Template helpers for env var injection
+```
+
+### Prerequisites
+
+- [kind](https://kind.sigs.k8s.io/) — local Kubernetes clusters via Docker
+- [kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Helmfile](https://helmfile.readthedocs.io/en/latest/#installation)
+
+### 1. Create the kind cluster
+
+```bash
+kind create cluster --config k8s/kind-config.yaml
+```
+
+### 2. Build the Docker images
+
+The application uses a multi-stage Dockerfile. The **runtime** image is used by the API deployment; the **builder** stage is used as the migrations image (it retains `alembic.ini`, `migrations/`, and the full `uv` toolchain).
+
+Run from the **repo root**, replacing `1.0.0` with the desired tag (must match `app.image.tag` and `migrations.image.tag` in `values.yaml`):
+
+```bash
+# Runtime image — used by the API Deployment
+docker build -t movie-rating:1.0.0 app/
+
+# Builder image — used by the migrations Job
+docker build --target builder -t movie-rating-migrations:1.0.0 app/
+```
+
+### 3. Load the images into kind
+
+kind clusters use their own container runtime, so images must be loaded explicitly:
+
+```bash
+kind load docker-image movie-rating:1.0.0
+kind load docker-image movie-rating-migrations:1.0.0
+```
+
+### 4. Deploy with Helmfile
+
+```bash
+helmfile -f k8s/helmfile.yaml.gotmpl -e local sync
+```
+
+This installs:
+- **Kong Ingress Controller** (`kong` namespace) — routes external traffic into the cluster
+- **Goldilocks** (`goldilocks` namespace) — VPA-based resource recommendations
+- **movie-rating** (`movie-rating` namespace) — the application chart, which includes PostgreSQL as a subchart and runs migrations as a pre-upgrade Job
+
+> The application may take a few moments to become ready while the migration Job completes. Monitor progress with:
+> ```bash
+> kubectl get jobs -n movie-rating -w
+> ```
+
+### 5. Configure /etc/hosts
+
+Add the Ingress host to your local DNS resolver:
+
+```bash
+echo "127.0.0.1  movie-rating.local.com" | sudo tee -a /etc/hosts
+```
+
+The API will then be available at `http://movie-rating.local.com/api/v1/`.
+
+### Helm chart reference
+
+| Value | Default | Description |
+|---|---|---|
+| `local.enabled` | `true` | Enables local-only resources (PostgreSQL subchart, migrations Job, env injection) |
+| `app.image.tag` | `1.0.0` | Tag of the `movie-rating` runtime image |
+| `app.ingress.host` | `movie-rating.local.com` | Ingress hostname |
+| `app.ingress.className` | `kong` | Ingress class (Kong) |
+| `migrations.image.tag` | `1.0.0` | Tag of the `movie-rating-migrations` builder image |
+| `secrets.*` | see `values.yaml` | Database credentials and address injected as environment variables |
+
+---
+
 ## Scripts
 
 The `scripts/` directory contains utilities for manual testing and observability validation. They require `httpx` (`uv add httpx` or install it separately) and a running API instance.
