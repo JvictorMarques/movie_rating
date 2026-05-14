@@ -10,6 +10,7 @@ services:
     build:
         context: .
         dockerfile: Dockerfile
+        target: runtime
     restart: unless-stopped
     environment:
       <<: *db-env
@@ -30,22 +31,16 @@ services:
     build:
         context: .
         dockerfile: Dockerfile
-        target: builder
+        target: migrations
     restart: no
     environment:
       <<: *db-env
-    command: >
-      sh -c "
-        apk add gcc python3-dev musl-dev linux-headers
-        uv sync --no-install-project --frozen &&
-        uv run alembic upgrade head
-      "
     depends_on:
       postgres:
         condition: service_healthy
 
   postgres:
-    image: postgres:18.3
+    image: postgres:17
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${DB_USER}
