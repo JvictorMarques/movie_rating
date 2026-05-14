@@ -4,9 +4,11 @@
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.135%2B-009688?logo=fastapi)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-D71F00?logo=sqlalchemy&logoColor=white)
 ![Pydantic](https://img.shields.io/badge/Pydantic-2.0-E92063?logo=pydantic&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18.3-336791?logo=postgresql)
 ![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?logo=opentelemetry&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?logo=grafana&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?logo=kubernetes&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-0F1689?logo=helm&logoColor=white)
 ![Version](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fraw.githubusercontent.com%2FJvictorMarques%2Fmovie_rating%2Frefs%2Fheads%2Fmain%2Fapp%2Fpyproject.toml&query=%24.project.version&label=version&color=brightgreen)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 
@@ -31,7 +33,7 @@ A REST API for managing and rating movies, built with FastAPI and async SQLAlche
 |---|---|
 | Framework | [FastAPI](https://fastapi.tiangolo.com/) |
 | ORM | [SQLAlchemy 2.0](https://docs.sqlalchemy.org/) (async) |
-| Database | PostgreSQL 16 |
+| Database | PostgreSQL 18.3 |
 | Validation | [Pydantic v2](https://docs.pydantic.dev/) |
 | Authentication | [PyJWT](https://pyjwt.readthedocs.io/) (JWT Bearer tokens) |
 | Password hashing | [pwdlib](https://github.com/frankie567/pwdlib) (Argon2) |
